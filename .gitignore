@@ -1,0 +1,32 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# video assets (troppo grandi per git — vanno solo in CDN/Vercel deploy)
+public/assets/*.mp4
+public/assets/*.mov
+public/assets/*.webm
+
+# jetbrains setting folder
+.idea/
+
+# Claude Code local settings (personali, non committare)
+.claude/settings.local.json

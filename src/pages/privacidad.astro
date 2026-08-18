@@ -1,0 +1,72 @@
+---
+import Base from "../layouts/Base.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import { BRAND_NAME } from "../content/copy.ts";
+
+/*
+  STUB in stato DRAFT. Il testo definitivo (responsable del tratamiento,
+  finalidades, base jurídica, plazos de conservación, destinatarios,
+  transferencias internacionales, derechos RGPD/LOPDGDD y reclamación
+  ante la AEPD) arriva dal legal pack prima del go-live.
+  Pagina noindex + esclusa da sitemap e robots finché resta un draft.
+*/
+
+const title = `Política de privacidad — ${BRAND_NAME}`;
+const description =
+  "Política de privacidad del sitio. Documento en preparación: el texto definitivo se publicará antes del lanzamiento.";
+---
+
+<Base title={title} description={description} noindex>
+  <Navbar />
+  <main id="main">
+    <section class="bg-[var(--color-paper)]" aria-labelledby="privacidad-title">
+      <div
+        class="mx-auto w-full max-w-2xl px-6 pt-16 pb-24 sm:px-8 sm:pt-20 sm:pb-32"
+      >
+        <p
+          class="mb-8 rounded-xl border border-[var(--color-rose)]/40 bg-[var(--color-rose)]/10 px-5 py-4 text-sm leading-relaxed font-medium text-[var(--color-ink)]"
+          role="note"
+        >
+          <strong class="tracking-wide uppercase">Borrador</strong> — texto
+          legal pendiente. Este contenido es un marcador de posición: el
+          texto definitivo de la política de privacidad llega del paquete
+          legal y se publicará antes del lanzamiento. No lo consideres
+          información válida ni vinculante.
+        </p>
+
+        <h1
+          id="privacidad-title"
+          class="font-[family-name:var(--font-display)] text-3xl leading-[1.15] font-semibold tracking-tight text-balance text-[var(--color-ink)] sm:text-4xl"
+        >
+          Política de privacidad
+        </h1>
+
+        <div class="mt-8 space-y-6 text-base leading-relaxed text-[var(--color-muted)]">
+          <p>
+            Aquí irán el responsable del tratamiento y sus datos de contacto,
+            las finalidades por las que tratamos tus datos y la base jurídica
+            de cada una.
+          </p>
+          <p>
+            También los plazos de conservación, los destinatarios y
+            encargados que intervienen, las eventuales transferencias
+            internacionales, y el detalle de las herramientas de medición
+            publicitaria que utiliza el sitio.
+          </p>
+          <p>
+            Y por último tus derechos de acceso, rectificación, supresión,
+            oposición, limitación y portabilidad, cómo ejercerlos y cómo
+            presentar una reclamación ante la autoridad de control.
+          </p>
+          <p>
+            En resumen, y a la espera del texto definitivo: los datos que
+            dejas en el formulario se usan solo para contactarte. No se
+            venden a terceros.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>

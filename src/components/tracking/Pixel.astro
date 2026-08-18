@@ -1,0 +1,61 @@
+---
+/**
+ * Meta Pixel base snippet.
+ *
+ * Si attiva SOLO se `PUBLIC_META_PIXEL_ID` è settato in env. Senza ID
+ * non emette markup — niente errori, niente tag inutili.
+ *
+ * Wiring (CLAUDE.md → Form e tracking → Fase 4):
+ *  - Client: questo componente carica fbevents.js e fire `PageView`.
+ *    Il fire `Lead` avviene in `OptInGate.astro` al submit del form,
+ *    con `eventID` per dedup verso CAPI.
+ *  - Server: `/api/lead.ts` fire CAPI con stesso `event_id` per dedup.
+ *
+ * Decisione 2026-05-07: nessun cookie banner, Pixel acceso senza
+ * gating. Allineamento con competitor del verticale.
+ */
+const pixelId = import.meta.env.PUBLIC_META_PIXEL_ID;
+---
+
+{
+  pixelId && (
+    <>
+      <script is:inline define:vars={{ pixelId }}>
+        !(function (f, b, e, v, n, t, s) {
+          if (f.fbq) return;
+          n = f.fbq = function () {
+            n.callMethod
+              ? n.callMethod.apply(n, arguments)
+              : n.queue.push(arguments);
+          };
+          if (!f._fbq) f._fbq = n;
+          n.push = n;
+          n.loaded = !0;
+          n.version = "2.0";
+          n.queue = [];
+          t = b.createElement(e);
+          t.async = !0;
+          t.src = v;
+          s = b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t, s);
+        })(
+          window,
+          document,
+          "script",
+          "https://connect.facebook.net/en_US/fbevents.js",
+        );
+        fbq("init", pixelId);
+        fbq("track", "PageView");
+      </script>
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style="display:none"
+          alt=""
+          src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
+        />
+      </noscript>
+    </>
+  )
+}

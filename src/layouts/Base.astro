@@ -1,0 +1,89 @@
+---
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import Pixel from "../components/tracking/Pixel.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  /** URL canonica assoluta. Se non passata, usa quella della pagina. */
+  canonical?: string;
+  /**
+   * OG image relativa o assoluta. Se omessa, og:image non viene emesso e
+   * twitter:card cade su "summary" (no thumbnail). Niente file fittizio
+   * che genera 404 sui crawler social.
+   */
+  ogImage?: string;
+  /** Aggiunge <meta name="robots" content="noindex"> — utile per /gracias. */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonical = Astro.url.href,
+  ogImage,
+  noindex = false,
+} = Astro.props;
+
+const ogImageUrl = ogImage ? new URL(ogImage, Astro.url).href : null;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    {/* Open Graph */}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImageUrl && (
+      <>
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
+      </>
+    )}
+    <meta
+      name="twitter:card"
+      content={ogImageUrl ? "summary_large_image" : "summary"}
+    />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+
+    {/*
+      Font self-hosted via Astro 6 fonts API (Inter + Fraunces).
+      preload limitato ai pesi visibili nel viewport iniziale: Inter 400 (body)
+      + Fraunces 600 (h1 hero). Gli altri pesi caricano on-demand.
+    */}
+    <Font cssVariable="--font-inter" preload={[{ weight: "400" }]} />
+    <Font cssVariable="--font-fraunces" preload={[{ weight: "600" }]} />
+
+    {/*
+      Meta Pixel — Decisione 2026-05-07: nessun cookie banner, Pixel
+      acceso senza gating. Si attiva solo se PUBLIC_META_PIXEL_ID
+      è settato; altrimenti il componente non emette markup.
+    */}
+    <Pixel />
+  </head>
+  <body>
+    <a href="#main" class="skip-to-main">Saltar al contenido</a>
+    <slot />
+  </body>
+</html>

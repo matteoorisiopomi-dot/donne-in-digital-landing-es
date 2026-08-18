@@ -1,0 +1,25 @@
+---
+import Base from "../layouts/Base.astro";
+import Navbar from "../components/Navbar.astro";
+import VslSection from "../components/VslSection.astro";
+import OptInGate from "../components/OptInGate.astro";
+import Footer from "../components/Footer.astro";
+import { meta } from "../content/copy.ts";
+
+/*
+  `ogImage` volutamente NON passata: l'OG image italiana è stata rimossa
+  da questa copia e quella spagnola va ancora prodotta (1200x630).
+  Base.astro gestisce l'assenza — niente tag og:image, twitter:card cade
+  su "summary" — quindi nessun 404 sui crawler social nel frattempo.
+  Vedi BRAND_RENAME_CHECKLIST.md.
+*/
+---
+
+<Base title={meta.title} description={meta.description}>
+  <Navbar />
+  <main id="main">
+    <VslSection />
+    <OptInGate />
+  </main>
+  <Footer />
+</Base>

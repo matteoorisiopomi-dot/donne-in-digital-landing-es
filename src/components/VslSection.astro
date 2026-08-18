@@ -1,0 +1,409 @@
+---
+import { vsl } from "../content/copy.ts";
+
+/*
+  VSL squeeze: headline + sottotitolo + player video.
+  Sezione trasparente: il gradiente body (viola→rosa) trasparisce.
+  Quando il video definitivo è disponibile, sostituire `vsl.video` in
+  src/content/copy.ts — niente edit qui dentro nel caso normale.
+*/
+
+const video = vsl.video;
+---
+
+<section aria-label="Vídeo de presentación">
+  <div class="mx-auto w-full max-w-3xl px-6 pt-5 pb-5 sm:px-8 sm:pt-10 sm:pb-8">
+    <div class="mb-3 flex justify-center sm:mb-4">
+      <span
+        class="inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/30 px-3 py-1 text-[10px] font-semibold tracking-wide text-[var(--color-plum)] shadow-sm shadow-[var(--color-plum)]/10 backdrop-blur-md sm:text-[11px]"
+      >
+        <span
+          class="flex h-1.5 w-1.5 rounded-full bg-[var(--color-rose)]"
+          aria-hidden="true"
+        ></span>
+        {vsl.stepLabel}
+      </span>
+    </div>
+
+    <h1
+      class="font-[family-name:var(--font-display)] text-xl leading-[1.2] font-semibold tracking-tight text-balance text-center text-[var(--color-ink)] sm:text-3xl"
+      set:html={vsl.headline}
+    />
+    <p
+      class="mt-2 text-xs leading-snug text-center text-[var(--color-muted)] sm:mt-3 sm:text-base"
+      set:html={vsl.subtitle}
+    />
+
+    <p
+      class="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-[var(--color-muted)]/70 sm:text-xs"
+      aria-hidden="true"
+    >
+      <span class="viewer-dot"></span>
+      <span data-viewer-count>–</span>
+      <span>{vsl.viewerSuffix}</span>
+    </p>
+
+    <div
+      class="video-aura mt-4 relative aspect-video w-full overflow-hidden rounded-2xl bg-[var(--color-ink)] sm:mt-6"
+    >
+      {
+        video.provider === "placeholder" && (
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+            <span
+              class="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-rose)]/15 ring-1 ring-[var(--color-rose)]/40"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="h-7 w-7 translate-x-[2px] text-[var(--color-rose)]"
+              >
+                <path d="M8 5.5v13l11-6.5z" />
+              </svg>
+            </span>
+            <p class="font-[family-name:var(--font-display)] text-lg text-[var(--color-paper)] sm:text-xl">
+              {vsl.placeholder.title}
+            </p>
+            <p class="max-w-sm text-sm text-[var(--color-paper)]/70">
+              {vsl.placeholder.hint}
+            </p>
+          </div>
+        )
+      }
+
+      {
+        video.provider === "mp4" && (
+          <div class="relative h-full w-full" data-mp4-wrap>
+            <div
+              class="video-skeleton absolute inset-0 flex items-center justify-center"
+              data-mp4-skeleton
+              aria-hidden="true"
+            >
+              <svg
+                class="h-12 w-12 animate-spin text-[var(--color-paper)]/50"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  opacity="0.25"
+                />
+                <path
+                  d="M22 12a10 10 0 0 1-10 10"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <video
+              class="h-full w-full"
+              autoplay
+              muted
+              playsinline
+              controls
+              preload="metadata"
+              poster={video.poster}
+              src={video.url}
+              data-mp4-video
+            />
+            <button
+              type="button"
+              data-mp4-unmute
+              class="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-4 bg-[var(--color-ink)]/25 text-[var(--color-paper)] transition-opacity duration-200"
+              aria-label="Activar el sonido"
+            >
+              <span class="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-rose)] shadow-lg ring-4 ring-[var(--color-paper)]/25 sm:h-24 sm:w-24">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  class="h-9 w-9 text-[var(--color-paper)] sm:h-11 sm:w-11"
+                  aria-hidden="true"
+                >
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06A7 7 0 0 1 19 12a7 7 0 0 1-5 6.71v2.06A9 9 0 0 0 21 12 9 9 0 0 0 14 3.23z" />
+                </svg>
+              </span>
+              <span class="font-[family-name:var(--font-display)] text-base sm:text-lg">
+                Toca para activar el sonido
+              </span>
+            </button>
+          </div>
+        )
+      }
+
+      {
+        video.provider === "vimeo" && (
+          <div
+            class="relative h-full w-full bg-cover bg-center"
+            style={video.poster ? `background-image:url('${video.poster}')` : undefined}
+            data-vimeo-wrap
+          >
+            <iframe
+              class="relative h-full w-full"
+              src={`${video.url}${video.url.includes("?") ? "&" : "?"}autoplay=1&muted=1&playsinline=1&controls=0&dnt=1&badge=0&autopause=0&title=0&byline=0&portrait=0`}
+              title="Vídeo de presentación"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+              data-vimeo-iframe
+            />
+            <button
+              type="button"
+              data-vimeo-unmute
+              class="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-4 bg-transparent text-[var(--color-paper)] transition-opacity duration-200"
+              aria-label="Activar el sonido"
+            >
+              <span class="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-rose)] shadow-xl ring-4 ring-[var(--color-paper)]/35 sm:h-24 sm:w-24">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  class="h-9 w-9 text-[var(--color-paper)] sm:h-11 sm:w-11"
+                  aria-hidden="true"
+                >
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06A7 7 0 0 1 19 12a7 7 0 0 1-5 6.71v2.06A9 9 0 0 0 21 12 9 9 0 0 0 14 3.23z" />
+                </svg>
+              </span>
+              <span class="font-[family-name:var(--font-display)] text-base [text-shadow:0_2px_8px_rgba(24,8,42,0.85)] sm:text-lg">
+                Toca para activar el sonido
+              </span>
+            </button>
+          </div>
+        )
+      }
+
+      {
+        video.provider === "wistia" && (
+          <div
+            class={`wistia_embed wistia_async_${video.mediaId} h-full w-full`}
+          />
+        )
+      }
+
+      {
+        video.provider === "youtube" && (
+          <iframe
+            class="h-full w-full"
+            src={`https://www.youtube-nocookie.com/embed/${video.videoId}?rel=0&modestbranding=1&autoplay=1&mute=1&playsinline=1`}
+            title="Vídeo de presentación"
+            loading="lazy"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowfullscreen
+          />
+        )
+      }
+    </div>
+
+    {/* suggerimento rotazione — visibile solo mobile portrait via CSS */}
+    <p class="phone-hint mt-3 text-[11px] text-[var(--color-muted)] opacity-60" aria-hidden="true">
+      <span class="phone-hint-icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="h-4 w-4"
+          aria-hidden="true"
+        >
+          <rect x="5" y="2" width="14" height="20" rx="2.5"/>
+          <line x1="10.5" y1="19" x2="13.5" y2="19" stroke-width="1.5"/>
+          <line x1="10" y1="5" x2="14" y2="5" stroke-width="1.5"/>
+        </svg>
+      </span>
+      {vsl.rotateHint}
+    </p>
+  </div>
+</section>
+
+<script>
+  /* ---------- Meta Pixel: eventi custom VSL ----------
+     Fire una sola volta per sessione. sessionStorage sopravvive al reload
+     dello stesso tab (un refresh non gonfia i numeri) e si azzera a tab
+     chiuso — stesso criterio del counter spettatori qui sotto.
+     `fbq` esiste solo se PUBLIC_META_PIXEL_ID è settato (vedi Pixel.astro):
+     senza Pixel è un no-op silenzioso, nessun errore in console. */
+  const trackOnce = (eventName: string): void => {
+    const key = `didi_evt_${eventName}`;
+    try {
+      if (window.sessionStorage.getItem(key)) return;
+      window.sessionStorage.setItem(key, "1");
+    } catch {
+      /* storage non disponibile (Safari privato, quota piena): spara
+         comunque — meglio un doppione che un buco nei dati. */
+    }
+    const fbq = (window as unknown as {
+      fbq?: (cmd: string, eventName: string) => void;
+    }).fbq;
+    if (typeof fbq === "function") fbq("trackCustom", eventName);
+  };
+
+  /* ---------- Counter spettatori (25–35, drift live) ----------
+     Range stretto e realistico. Persiste in sessionStorage per tutta
+     la sessione: reload nello stesso tab = stesso valore (evita
+     "il numero salta a caso → perdita di fiducia"). Sessione nuova
+     (tab chiuso o sessionStorage scaduto) = nuovo valore casuale.
+
+     Drift lento: ogni 6–12s, 50% probabilità di ±1 entro [25, 35].
+  */
+  const countEl = document.querySelector<HTMLElement>("[data-viewer-count]");
+  if (countEl) {
+    const VIEWER_KEY = "didi_viewers_count";
+    const MIN = 25;
+    const MAX = 35;
+
+    function randomInRange(): number {
+      return MIN + Math.floor(Math.random() * (MAX - MIN + 1));
+    }
+
+    const stored = Number(window.sessionStorage.getItem(VIEWER_KEY));
+    let count =
+      Number.isFinite(stored) && stored >= MIN && stored <= MAX
+        ? stored
+        : randomInRange();
+    window.sessionStorage.setItem(VIEWER_KEY, String(count));
+    countEl.textContent = String(count);
+
+    const fluctuate = (): void => {
+      if (Math.random() < 0.5) {
+        const dir = Math.random() < 0.5 ? 1 : -1;
+        count = Math.max(MIN, Math.min(MAX, count + dir));
+        window.sessionStorage.setItem(VIEWER_KEY, String(count));
+        countEl.textContent = String(count);
+      }
+      window.setTimeout(fluctuate, 6000 + Math.random() * 6000);
+    };
+
+    window.setTimeout(fluctuate, 4000 + Math.random() * 4000);
+  }
+
+  /* ---------- MP4: unmute overlay + fallback play ----------
+     Il video parte autoplay muted (richiesto dai browser per autoplay
+     senza interazione). L'overlay copre il player finché il lead non
+     tocca lo schermo: al primo tap attiva audio + assicura il play
+     (in caso di blocco autoplay), poi si rimuove.
+  */
+  const mp4Wrap = document.querySelector<HTMLElement>("[data-mp4-wrap]");
+  if (mp4Wrap) {
+    const videoEl = mp4Wrap.querySelector<HTMLVideoElement>("[data-mp4-video]");
+    const overlay = mp4Wrap.querySelector<HTMLButtonElement>("[data-mp4-unmute]");
+    const skeleton = mp4Wrap.querySelector<HTMLElement>("[data-mp4-skeleton]");
+
+    /* Skeleton fade-out al primo frame disponibile. Se il video è già
+       in cache (reload) `readyState >= 2` e l'evento non scatta — gestione
+       sincrona alla connessione del listener. */
+    if (videoEl && skeleton) {
+      const hideSkeleton = () => skeleton.classList.add("is-loaded");
+      if (videoEl.readyState >= 2) {
+        hideSkeleton();
+      } else {
+        videoEl.addEventListener("loadeddata", hideSkeleton, { once: true });
+      }
+    }
+
+    if (videoEl && overlay) {
+      overlay.addEventListener("click", async () => {
+        // Riavvia da capo: il lead deve sentire la VSL dall'inizio con audio.
+        videoEl.muted = false;
+        videoEl.currentTime = 0;
+        try {
+          await videoEl.play();
+        } catch {
+          /* il browser ha rifiutato il play: l'utente può usare i controls nativi */
+        }
+        // Sincronizza il timer con il restart del video.
+        window.dispatchEvent(new CustomEvent("vsl:restart"));
+        trackOnce("VSL_Play");
+        overlay.style.opacity = "0";
+        window.setTimeout(() => overlay.remove(), 180);
+      });
+    }
+  }
+
+  /* ---------- Vimeo: unmute overlay via postMessage ----------
+     L'iframe parte autoplay muted (params nel src). Overlay copre il
+     player finché il lead non tocca: al tap manda 3 comandi via
+     postMessage (raw, niente Player SDK per restare sotto budget JS):
+     setMuted(false) + setCurrentTime(0) + play(). Vimeo accetta i
+     comandi anche prima del 'ready' event — li mette in coda. */
+  const vimeoWrap = document.querySelector<HTMLElement>("[data-vimeo-wrap]");
+  if (vimeoWrap) {
+    const iframe = vimeoWrap.querySelector<HTMLIFrameElement>("[data-vimeo-iframe]");
+    const overlay = vimeoWrap.querySelector<HTMLButtonElement>("[data-vimeo-unmute]");
+
+    if (iframe && overlay) {
+      const post = (method: string, value?: unknown): void => {
+        const payload = value !== undefined ? { method, value } : { method };
+        iframe.contentWindow?.postMessage(JSON.stringify(payload), "*");
+      };
+
+      overlay.addEventListener("click", () => {
+        post("setMuted", false);
+        post("setCurrentTime", 0);
+        post("play");
+        window.dispatchEvent(new CustomEvent("vsl:restart"));
+        trackOnce("VSL_Play");
+        overlay.style.opacity = "0";
+        window.setTimeout(() => overlay.remove(), 180);
+      });
+
+      /* ---------- Quartili di visione (25/50/75%) ----------
+         Ascolto puro sullo stesso canale postMessage già usato sopra per
+         l'unmute: nessun Player SDK (~30 KB gzip, da solo esaurirebbe il
+         budget JS della pagina). I parametri dell'embed restano identici —
+         qui non si configura il player, si ascolta e basta.
+
+         Sottoscrizione: Vimeo mette in coda i comandi ricevuti prima del
+         'ready' (stesso motivo per cui l'unmute funziona al primo tap),
+         quindi possiamo chiedere subito. Ripetiamo sul 'ready' e sul load
+         dell'iframe per coprire ricarichi: una doppia sottoscrizione al
+         massimo duplica i messaggi, e trackOnce li assorbe. */
+      const subscribeTimeupdate = (): void =>
+        post("addEventListener", "timeupdate");
+
+      window.addEventListener("message", (event: MessageEvent) => {
+        if (event.origin !== "https://player.vimeo.com") return;
+
+        let msg: {
+          event?: string;
+          data?: { percent?: number; seconds?: number; duration?: number };
+        };
+        try {
+          msg =
+            typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        } catch {
+          return; // messaggio non-JSON da Vimeo: ignora
+        }
+        if (!msg || typeof msg !== "object") return;
+
+        if (msg.event === "ready") {
+          subscribeTimeupdate();
+          return;
+        }
+        if (msg.event !== "timeupdate" || !msg.data) return;
+
+        /* `percent` è 0–1. Fallback su seconds/duration se assente. */
+        const d = msg.data;
+        const percent =
+          typeof d.percent === "number"
+            ? d.percent
+            : d.duration
+              ? (d.seconds ?? 0) / d.duration
+              : 0;
+
+        /* Nessun else-if: al primo timeupdate utile dopo un seek in avanti
+           devono scattare tutti i quartili attraversati. trackOnce dedupa. */
+        if (percent >= 0.25) trackOnce("VSL_25");
+        if (percent >= 0.5) trackOnce("VSL_50");
+        if (percent >= 0.75) trackOnce("VSL_75");
+      });
+
+      subscribeTimeupdate();
+      iframe.addEventListener("load", subscribeTimeupdate);
+    }
+  }
+</script>

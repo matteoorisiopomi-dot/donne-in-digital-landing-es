@@ -1,0 +1,64 @@
+---
+import Base from "../layouts/Base.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import { BRAND_NAME } from "../content/copy.ts";
+
+/*
+  STUB in stato DRAFT. Il testo definitivo (datos identificativos del
+  titular, NIF, domicilio, contacto, condiciones de uso, propiedad
+  intelectual, ley aplicable) arriva dal legal pack prima del go-live.
+  Pagina noindex + esclusa da sitemap e robots finché resta un draft.
+*/
+
+const title = `Aviso legal — ${BRAND_NAME}`;
+const description =
+  "Aviso legal del sitio. Documento en preparación: el texto definitivo se publicará antes del lanzamiento.";
+---
+
+<Base title={title} description={description} noindex>
+  <Navbar />
+  <main id="main">
+    <section class="bg-[var(--color-paper)]" aria-labelledby="aviso-title">
+      <div
+        class="mx-auto w-full max-w-2xl px-6 pt-16 pb-24 sm:px-8 sm:pt-20 sm:pb-32"
+      >
+        <p
+          class="mb-8 rounded-xl border border-[var(--color-rose)]/40 bg-[var(--color-rose)]/10 px-5 py-4 text-sm leading-relaxed font-medium text-[var(--color-ink)]"
+          role="note"
+        >
+          <strong class="tracking-wide uppercase">Borrador</strong> — texto
+          legal pendiente. Este contenido es un marcador de posición: el
+          texto definitivo del aviso legal llega del paquete legal y se
+          publicará antes del lanzamiento. No lo consideres información
+          válida ni vinculante.
+        </p>
+
+        <h1
+          id="aviso-title"
+          class="font-[family-name:var(--font-display)] text-3xl leading-[1.15] font-semibold tracking-tight text-balance text-[var(--color-ink)] sm:text-4xl"
+        >
+          Aviso legal
+        </h1>
+
+        <div class="mt-8 space-y-6 text-base leading-relaxed text-[var(--color-muted)]">
+          <p>
+            Aquí irán los datos identificativos del titular del sitio: razón
+            social, NIF, domicilio, correo de contacto y datos registrales.
+          </p>
+          <p>
+            También las condiciones de uso del sitio, la titularidad de los
+            contenidos y de la propiedad intelectual, el régimen de
+            responsabilidad sobre enlaces externos, y la legislación
+            aplicable junto con el fuero competente.
+          </p>
+          <p>
+            Mientras tanto, si necesitas cualquier aclaración, puedes
+            pedírnosla cuando la coach te contacte.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>

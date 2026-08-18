@@ -1,0 +1,24 @@
+# Política robots — mercado ES
+#
+# /gracias es la página de agradecimiento posterior al envío del
+# formulario. No debe aparecer en resultados de búsqueda (también está
+# marcada como noindex mediante meta tag, doble defensa).
+#
+# /aviso-legal y /privacidad son borradores: el texto definitivo llega
+# del paquete legal antes del lanzamiento. Hasta entonces se quedan
+# fuera del índice.
+
+User-agent: *
+Allow: /
+Disallow: /gracias
+Disallow: /aviso-legal
+Disallow: /privacidad
+
+# Sitemap generada automáticamente por @astrojs/sitemap durante el build.
+#
+# TODO (lanzamiento): el dominio del mercado español todavía no existe.
+# Una vez registrado y configurado PUBLIC_SITE_URL en Vercel, descomenta
+# la línea de abajo y sustituye el dominio. Este archivo es estático: hay
+# que actualizarlo a mano si el dominio cambia.
+#
+# Sitemap: https://<dominio-final>/sitemap-index.xml

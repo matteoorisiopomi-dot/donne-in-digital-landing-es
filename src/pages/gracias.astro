@@ -1,0 +1,37 @@
+---
+import Base from "../layouts/Base.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import { BRAND_NAME } from "../content/copy.ts";
+
+const title = `Gracias — ${BRAND_NAME}`;
+const description =
+  "Hemos recibido tus datos. Te escribe una coach de nuestro equipo.";
+---
+
+<Base title={title} description={description} noindex>
+  <Navbar />
+  <main id="main">
+    <section
+      class="bg-[var(--color-paper)]"
+      aria-labelledby="gracias-title"
+    >
+      <div
+        class="mx-auto w-full max-w-2xl px-6 pt-20 pb-24 text-center sm:px-8 sm:pt-28 sm:pb-32"
+      >
+        <h1
+          id="gracias-title"
+          class="font-[family-name:var(--font-display)] text-3xl leading-[1.15] font-semibold tracking-tight text-balance text-[var(--color-ink)] sm:text-4xl"
+          set:html={`Ya está. Te escribe la <span class="kw-rose">coach por WhatsApp</span>.`}
+        />
+        <p
+          class="mt-6 text-base leading-relaxed text-[var(--color-muted)] sm:text-lg"
+        >
+          Hemos recibido tus datos. Te escribimos al número que has dejado en un
+          plazo de 48 horas.
+        </p>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>

@@ -1,0 +1,29 @@
+---
+import { brand } from "../content/copy.ts";
+
+/*
+  Navbar fissa con logo centrato. Effetto glass: bg semitrasparente +
+  backdrop-blur — coerente col registro del pill "Step 1 di 2" sopra il
+  video. Lo spacer in fondo riserva l'altezza esatta della navbar così
+  il contenuto sotto non finisce nascosto sotto la barra fissa.
+*/
+---
+
+<header
+  class="fixed inset-x-0 top-0 z-50 h-16 border-b border-white/30 bg-white/20 backdrop-blur-md sm:h-[78px]"
+>
+  <div
+    class="mx-auto flex h-full max-w-4xl items-center justify-center px-6 sm:px-8"
+  >
+    <a href="/" class="inline-flex h-full items-center" aria-label={brand.name}>
+      <img
+        src={brand.logoSrc}
+        alt={brand.name}
+        width={brand.logoWidth}
+        height={brand.logoHeight}
+        class="block h-[62px] w-auto sm:h-[76px]"
+      />
+    </a>
+  </div>
+</header>
+<div class="h-16 sm:h-[78px]" aria-hidden="true"></div>

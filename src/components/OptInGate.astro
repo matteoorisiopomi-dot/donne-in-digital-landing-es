@@ -1,0 +1,803 @@
+---
+import { optinGate, anchors } from "../content/copy.ts";
+
+/*
+  Gate opt-in: countdown timer → reveal del form quando arriva a 0.
+
+  Logica wall-clock con localStorage:
+  - Alla prima visita salva il timestamp in localStorage.
+  - Il momento di unlock è (firstSeen + timerSeconds * 1000).
+  - Se l'utente torna entro `storageTtlHours`, NON ricomincia il timer:
+    riprende da dove era (o trova già il form aperto se ha aspettato).
+  - Dopo TTL il valore scade e il timer riparte.
+  - In modalità dev (`import.meta.env.DEV`) il timer riparte SEMPRE da
+    zero ad ogni reload — comodo per testing, non incide su produzione.
+
+  Query string per testing (NON documentate al pubblico):
+  - ?unlock=1   → mostra il form senza countdown (non tocca lo storage)
+  - ?reset=1    → svuota lo storage e riavvia il timer
+
+  Fase 2 = solo UI. La submit logga in console e mostra un messaggio.
+  Fase 3 = sostituisce il blocco script con POST a /api/lead reale.
+*/
+
+const labels = optinGate.labels;
+const phonePrefixes = optinGate.phonePrefixes;
+const defaultPrefix = phonePrefixes.find((p) => p.default) ?? phonePrefixes[0];
+---
+
+<section
+  id={anchors.form}
+  aria-label="Formulario de contacto"
+  data-optin-gate
+  data-timer-seconds={optinGate.timerSeconds}
+  data-storage-key={optinGate.storageKey}
+  data-storage-ttl-hours={optinGate.storageTtlHours}
+>
+  <div class="mx-auto w-full max-w-2xl px-6 pt-2 pb-10 sm:px-8 sm:pb-14">
+    {/* sr-only context per screen reader: descrive cosa succede in pagina. */}
+    <p class="sr-only">
+      El formulario de contacto se desbloquea mientras ves el vídeo. Sigue
+      viéndolo y aparecerá aquí abajo.
+    </p>
+    {/* live region dedicata: annuncia una sola volta lo sblocco del form. */}
+    <div
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-gate-announce
+    ></div>
+
+    {/* STATO LOCKED — countdown (puramente visivo, aria-hidden) */}
+    <div
+      data-gate-state="locked"
+      class="timer-box relative mx-auto w-full max-w-[13rem] overflow-hidden rounded-2xl px-4 py-5 text-center sm:max-w-[15rem] sm:rounded-3xl sm:px-5 sm:py-6"
+      style="opacity:0"
+      aria-hidden="true"
+    >
+      {/* blobs ambientali (rose + plum flottanti) */}
+      <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div class="timer-blob-a absolute -right-6 -top-6 h-24 w-24 rounded-full blur-3xl" style="background:rgba(168,24,78,0.22)"></div>
+        <div class="timer-blob-b absolute -bottom-5 -left-6 h-20 w-20 rounded-full blur-3xl" style="background:rgba(74,18,117,0.28)"></div>
+      </div>
+
+      {/* dot pulsante */}
+      <div class="relative mx-auto mb-2.5 flex h-5 w-5 items-center justify-center" aria-hidden="true">
+        <span class="timer-pulse-ring absolute h-5 w-5 rounded-full" style="background:rgba(168,24,78,0.38)"></span>
+        <span class="h-1.5 w-1.5 rounded-full" style="background:#a8184e;box-shadow:0 0 8px #a8184e,0 0 18px rgba(168,24,78,0.5)"></span>
+      </div>
+
+      {/* label */}
+      <p class="relative text-[9px] font-semibold uppercase tracking-[0.18em] sm:text-[10px]" style="color:rgba(255,255,255,0.48)">
+        {optinGate.timerLabel}
+      </p>
+
+      {/* cifre countdown: MM e SS con gradient separati + colon autonomo */}
+      <p
+        class="timer-digits relative mt-2 font-[family-name:var(--font-display)] font-bold tabular-nums"
+        data-gate-countdown
+      >
+        <span class="timer-gradient" data-mm>--</span><span class="timer-colon">:</span><span class="timer-gradient" data-ss>--</span>
+      </p>
+    </div>
+
+    {/* STATO UNLOCKED — form */}
+    <div data-gate-state="unlocked" hidden class="gate-reveal mt-2">
+      <h2
+        class="font-[family-name:var(--font-display)] text-3xl leading-[1.1] font-semibold tracking-tight text-[var(--color-ink)] sm:text-4xl"
+      >
+        {optinGate.formTitle}
+      </h2>
+      <p
+        class="mt-3 text-base leading-relaxed text-[var(--color-muted)] sm:text-lg"
+      >
+        {optinGate.formIntro}
+      </p>
+
+      <form
+        id="lead-form"
+        novalidate
+        class="mt-8 space-y-5"
+        data-phase="2"
+        aria-describedby="form-status"
+      >
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label
+              for="lead-name"
+              class="block text-sm font-medium text-[var(--color-ink)]"
+            >
+              {labels.name}
+            </label>
+            <input
+              id="lead-name"
+              name="name"
+              type="text"
+              autocomplete="given-name"
+              required
+              minlength="2"
+              placeholder={labels.namePlaceholder}
+              class="mt-2 block w-full rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label
+              for="lead-surname"
+              class="block text-sm font-medium text-[var(--color-ink)]"
+            >
+              {labels.surname}
+            </label>
+            <input
+              id="lead-surname"
+              name="surname"
+              type="text"
+              autocomplete="family-name"
+              required
+              minlength="2"
+              placeholder={labels.surnamePlaceholder}
+              class="mt-2 block w-full rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            for="lead-email"
+            class="block text-sm font-medium text-[var(--color-ink)]"
+          >
+            {labels.email}
+          </label>
+          <input
+            id="lead-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            placeholder={labels.emailPlaceholder}
+            class="mt-2 block w-full rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label
+            for="lead-phone"
+            class="block text-sm font-medium text-[var(--color-ink)]"
+          >
+            {labels.phone}
+          </label>
+          {/* Gruppo prefisso + numero. Su mobile impilati (tap target ampi),
+               su desktop affiancati. I 4 messaggi d'errore vivono in copy.ts e
+               viaggiano come data-attr: lo script client li legge senza
+               duplicare le stringhe (stesso pattern del timer). */}
+          <div
+            class="mt-2 flex flex-col gap-2 sm:flex-row"
+            data-phone-group
+            data-msg-es={labels.phoneErrors.es}
+            data-msg-unsupported={labels.phoneErrors.unsupported}
+            data-msg-malformed={labels.phoneErrors.malformed}
+          >
+            {/* Selettore prefisso: <select> nativo. Con una sola voce una
+                 libreria (intl-tel-input) sarebbe peso morto; il nativo è
+                 più leggero, accessibile da tastiera e robusto su mobile.
+                 Resta un <select> anche con un solo mercato: aggiungere un
+                 paese torna a essere una riga in copy.ts. */}
+            <div class="relative sm:shrink-0">
+              <select
+                id="lead-phone-prefix"
+                name="phone_prefix"
+                aria-label={labels.phonePrefixAria}
+                class="block w-full appearance-none rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] py-3 pr-9 pl-4 text-base text-[var(--color-ink)] focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none sm:w-auto"
+              >
+                {
+                  phonePrefixes.map((p) => (
+                    <option
+                      value={p.dial}
+                      data-example={p.example}
+                      selected={p.default}
+                    >
+                      {p.flag} {p.name} (+{p.dial})
+                    </option>
+                  ))
+                }
+              </select>
+              {/* Chevron decorativa (il select ha appearance-none). */}
+              <svg
+                class="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]"
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <input
+              id="lead-phone"
+              name="phone"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel"
+              required
+              maxlength="20"
+              placeholder={defaultPrefix.example}
+              aria-describedby="lead-phone-hint"
+              class="block w-full min-w-0 rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none sm:flex-1"
+            />
+          </div>
+          <p id="lead-phone-hint" class="mt-1.5 text-xs text-[var(--color-muted)]">
+            {labels.phoneHint}
+          </p>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label
+              for="lead-age"
+              class="block text-sm font-medium text-[var(--color-ink)]"
+            >
+              {labels.age}
+            </label>
+            <input
+              id="lead-age"
+              name="age"
+              type="number"
+              inputmode="numeric"
+              min="18"
+              max="99"
+              step="1"
+              required
+              placeholder={labels.agePlaceholder}
+              class="mt-2 block w-full rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label
+              for="lead-occupation"
+              class="block text-sm font-medium text-[var(--color-ink)]"
+            >
+              {labels.occupation}
+            </label>
+            <input
+              id="lead-occupation"
+              name="occupation"
+              type="text"
+              autocomplete="organization-title"
+              required
+              minlength="2"
+              maxlength="80"
+              placeholder={labels.occupationPlaceholder}
+              class="mt-2 block w-full rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Domande a risposta aperta: qualificano il lead per la coach.
+             Textarea che crescono col contenuto (vedi data-autogrow nello
+             script); cap d'altezza via max-h, poi scroll. */}
+        <div>
+          <label
+            for="lead-motivation"
+            class="block text-sm font-medium text-[var(--color-ink)]"
+          >
+            {labels.motivation}
+          </label>
+          <textarea
+            id="lead-motivation"
+            name="motivation"
+            required
+            rows="3"
+            maxlength="1000"
+            data-autogrow
+            placeholder={labels.motivationPlaceholder}
+            class="mt-2 block max-h-60 min-h-24 w-full resize-none overflow-y-auto rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base leading-relaxed text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none"
+          ></textarea>
+        </div>
+
+        <div>
+          <label
+            for="lead-goal"
+            class="block text-sm font-medium text-[var(--color-ink)]"
+          >
+            {labels.goal}
+          </label>
+          <textarea
+            id="lead-goal"
+            name="goal"
+            required
+            rows="3"
+            maxlength="1000"
+            data-autogrow
+            placeholder={labels.goalPlaceholder}
+            class="mt-2 block max-h-60 min-h-24 w-full resize-none overflow-y-auto rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base leading-relaxed text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-plum)] focus:ring-2 focus:ring-[var(--color-plum)]/20 focus:outline-none"
+          ></textarea>
+        </div>
+
+        <fieldset class="space-y-3">
+          <legend class="text-sm font-medium text-[var(--color-ink)]">
+            {labels.awareLegend}
+          </legend>
+          <div class="grid grid-cols-2 gap-3">
+            <label
+              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base font-medium text-[var(--color-ink)] transition-colors hover:border-[var(--color-plum)]/40 has-[:checked]:border-[var(--color-plum)] has-[:checked]:bg-[var(--color-blush)]"
+            >
+              <input
+                type="radio"
+                name="aware"
+                value="yes"
+                required
+                class="h-4 w-4 accent-[var(--color-plum)]"
+              />
+              {labels.awareYes}
+            </label>
+            <label
+              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[var(--color-ink)]/15 bg-[var(--color-paper)] px-4 py-3 text-base font-medium text-[var(--color-ink)] transition-colors hover:border-[var(--color-plum)]/40 has-[:checked]:border-[var(--color-plum)] has-[:checked]:bg-[var(--color-blush)]"
+            >
+              <input
+                type="radio"
+                name="aware"
+                value="no"
+                required
+                class="h-4 w-4 accent-[var(--color-plum)]"
+              />
+              {labels.awareNo}
+            </label>
+          </div>
+        </fieldset>
+
+        <label
+          for="lead-consent"
+          class="flex cursor-pointer items-start gap-3 text-sm leading-snug text-[var(--color-muted)]"
+        >
+          <input
+            id="lead-consent"
+            name="consent"
+            type="checkbox"
+            required
+            class="mt-1 h-4 w-4 flex-shrink-0 accent-[var(--color-plum)]"
+          />
+          <span>{labels.consent.text}</span>
+        </label>
+
+        <p class="-mt-3 pl-7 text-xs text-[var(--color-muted)]/80">
+          <a
+            href={labels.consent.privacyHref}
+            class="underline underline-offset-2 transition-colors hover:text-[var(--color-muted)]"
+          >
+            {labels.consent.privacyText}
+          </a>
+        </p>
+
+        <button
+          type="submit"
+          class="cta-pulse inline-flex w-full items-center justify-center rounded-full bg-[var(--color-rose)] px-7 py-4 text-base font-medium tracking-wide text-[var(--color-paper)] shadow-sm transition-colors hover:bg-[var(--color-rose-deep)] focus-visible:bg-[var(--color-rose-deep)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        >
+          <span data-state="idle">{labels.submit}</span>
+          <span
+            data-state="loading"
+            hidden
+            class="inline-flex items-center gap-2"
+          >
+            <svg
+              class="h-5 w-5 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="3"
+                opacity="0.25"
+              />
+              <path
+                d="M22 12a10 10 0 0 1-10 10"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+              />
+            </svg>
+            {labels.submitting}
+          </span>
+        </button>
+
+        <p
+          id="form-status"
+          class="text-sm text-[var(--color-muted)]"
+          role="status"
+          aria-live="polite"
+        >
+          {labels.privacyNote}
+        </p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  /* ---------- Meta Pixel: evento custom gate ----------
+     Gemello dell'helper in VslSection.astro. Duplicato di proposito: un
+     modulo condiviso obbligherebbe Astro a servire lo script come file
+     esterno invece che inline, aggiungendo una richiesta di rete sul
+     percorso critico di una pagina con budget LCP stretto. Dieci righe
+     valgono meno di un round-trip. */
+  const trackOnce = (eventName: string): void => {
+    const key = `didi_evt_${eventName}`;
+    try {
+      if (window.sessionStorage.getItem(key)) return;
+      window.sessionStorage.setItem(key, "1");
+    } catch {
+      /* storage non disponibile: spara comunque */
+    }
+    const fbq = (window as unknown as {
+      fbq?: (cmd: string, eventName: string) => void;
+    }).fbq;
+    if (typeof fbq === "function") fbq("trackCustom", eventName);
+  };
+
+  /* ---------- Timer / gate ---------- */
+
+  const root = document.querySelector<HTMLElement>("[data-optin-gate]");
+  if (root) {
+    const timerSeconds = Number(root.dataset.timerSeconds ?? "30");
+    const storageKey = root.dataset.storageKey ?? "didi_vsl_first_seen_at";
+    const ttlMs =
+      Number(root.dataset.storageTtlHours ?? "24") * 60 * 60 * 1000;
+
+    const lockedEl = root.querySelector<HTMLElement>(
+      '[data-gate-state="locked"]',
+    );
+    const unlockedEl = root.querySelector<HTMLElement>(
+      '[data-gate-state="unlocked"]',
+    );
+    const countdownEl = root.querySelector<HTMLElement>("[data-gate-countdown]");
+    const mmEl = countdownEl?.querySelector<HTMLElement>("[data-mm]");
+    const ssEl = countdownEl?.querySelector<HTMLElement>("[data-ss]");
+    const announceEl = root.querySelector<HTMLElement>("[data-gate-announce]");
+
+    /* `track` distingue lo sblocco reale (timer scaduto) dal bypass di
+       test ?unlock=1, che non deve inquinare i dati Pixel. */
+    function reveal(track = true) {
+      if (lockedEl) lockedEl.hidden = true;
+      if (unlockedEl) {
+        unlockedEl.hidden = false;
+        /* Force reflow prima di applicare la classe — senza, il browser
+           non vede lo stato "from" della transition e applica subito il
+           "to". `void offsetHeight` legge una propriety che richiede
+           layout, sbloccando la transition. */
+        void unlockedEl.offsetHeight;
+        unlockedEl.classList.add("is-revealed");
+
+        /* Smooth scroll al form — block:start con offset implicito via
+           navbar h-16/20. Su browser senza supporto smooth scroll
+           (rari) il jump è istantaneo, comunque accettabile. */
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        unlockedEl.scrollIntoView({
+          behavior: reduceMotion ? "auto" : "smooth",
+          block: "start",
+        });
+      }
+      if (announceEl) {
+        announceEl.textContent =
+          "Formulario desbloqueado. Rellena tus datos aquí abajo.";
+      }
+      if (track) trackOnce("Form_Visible");
+    }
+
+    function rehide() {
+      if (lockedEl) {
+        lockedEl.hidden = false;
+        // Su restart il box è già visibile, ma rendiamolo robusto a stati precedenti.
+        lockedEl.style.opacity = "1";
+      }
+      if (unlockedEl) {
+        unlockedEl.hidden = true;
+        unlockedEl.classList.remove("is-revealed");
+      }
+    }
+
+    function format(ms: number): string {
+      const total = Math.max(0, Math.ceil(ms / 1000));
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function setCountdown(text: string): void {
+      if (mmEl && ssEl) {
+        const [mm = "--", ss = "--"] = text.split(":");
+        mmEl.textContent = mm;
+        ssEl.textContent = ss;
+      } else if (countdownEl) {
+        countdownEl.textContent = text;
+      }
+    }
+
+    let unlockAt = 0;
+    let tickHandle = 0;
+    let firstTick = true;
+
+    const tick = (): void => {
+      const remaining = unlockAt - Date.now();
+      if (remaining <= 0) {
+        setCountdown("00:00");
+        reveal();
+        return;
+      }
+      setCountdown(format(remaining));
+      // Fade-in al primo tick: la font è già caricata, niente FOUT visibile.
+      if (firstTick && lockedEl) {
+        firstTick = false;
+        lockedEl.style.transition = "opacity 0.18s ease";
+        lockedEl.style.opacity = "1";
+      }
+      tickHandle = window.setTimeout(tick, 250);
+    };
+
+    function start(firstSeen: number): void {
+      window.clearTimeout(tickHandle);
+      rehide();
+      unlockAt = firstSeen + timerSeconds * 1000;
+      tick();
+    }
+
+    const isDev = import.meta.env.DEV;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("reset") || isDev) {
+      window.localStorage.removeItem(storageKey);
+    }
+    if (params.has("unlock")) {
+      if (lockedEl) lockedEl.style.opacity = "1";
+      reveal(false);
+    } else {
+      const now = Date.now();
+      let firstSeen = Number(window.localStorage.getItem(storageKey) ?? "0");
+      if (!firstSeen || now - firstSeen > ttlMs) {
+        firstSeen = now;
+        window.localStorage.setItem(storageKey, String(firstSeen));
+      }
+      start(firstSeen);
+    }
+
+    // Restart timer quando il lead attiva l'audio (vedi VslSection.astro).
+    // Il timer riparte da zero per restare sincrono con il video che è
+    // appena stato riportato a currentTime=0.
+    window.addEventListener("vsl:restart", () => {
+      const now = Date.now();
+      window.localStorage.setItem(storageKey, String(now));
+      start(now);
+    });
+  }
+
+  /* ---------- Form ---------- */
+  /*
+    Submit: validazione client → POST /api/lead (fire-and-forget con
+    keepalive) → redirect immediato a /gracias.
+
+    Pattern fire-and-forget: keepalive=true permette al request di
+    completare anche dopo il navigation. UX snappy, niente attesa
+    visibile. In dev (npm run dev) /api/lead non esiste — il fetch
+    fallisce silenziosamente e il redirect funziona uguale.
+
+    Comportamento da CLAUDE.md (Form e tracking → Fase 3):
+    in caso di errore il client redirige a /gracias comunque —
+    l'utente non deve mai vedere errori per un problema interno.
+  */
+
+  const form = document.querySelector<HTMLFormElement>("#lead-form");
+  if (form) {
+    const idle = form.querySelector<HTMLElement>('[data-state="idle"]');
+    const loading = form.querySelector<HTMLElement>('[data-state="loading"]');
+    const button = form.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+    const phoneInput = form.querySelector<HTMLInputElement>("#lead-phone");
+    const prefixSelect =
+      form.querySelector<HTMLSelectElement>("#lead-phone-prefix");
+    const phoneGroup = form.querySelector<HTMLElement>("[data-phone-group]");
+
+    /* Messaggi d'errore: vivono in copy.ts, renderizzati come data-attr sul
+       gruppo telefono → lo script li legge senza duplicare le stringhe. */
+    const phoneMessages = {
+      es: phoneGroup?.dataset.msgEs ?? "Número no válido.",
+      unsupported: phoneGroup?.dataset.msgUnsupported ?? "Número no válido.",
+      malformed: phoneGroup?.dataset.msgMalformed ?? "Número no válido.",
+    };
+
+    /* Regole mobile per mercato, applicate al numero NAZIONALE significativo
+       (senza prefisso internazionale e senza zero di trunk):
+         ES +34 → mobili 6xxxxxxxx e 71-79xxxxxxx = 9 cifre. Esclusi di
+                  proposito i fissi 8xx/9xx e il range 70x ("numeración
+                  personal", non un móvil): l'hint dice "solo móviles".
+       AGGIUNGERE UN PAESE = 4 punti: questa tabella, le due regex in
+       validatePhone, `phonePrefixes` in copy.ts, `PHONE_RULES` in
+       api/lead.ts. */
+    const PHONE_RULES: Record<string, { rule: RegExp; message: string }> = {
+      "34": { rule: /^(?:6\d|7[1-9])\d{7}$/, message: phoneMessages.es },
+    };
+
+    /* Normalizzazione in E.164 canonico. "00" è l'equivalente numerico del
+       "+" (accesso internazionale): chi scrive 0041…/0049… genera a valle
+       "+0041…" malformato quando un "+" viene anteposto. Qui risolviamo a
+       monte → un solo "+", country code, numero senza zero di trunk. */
+    function buildE164(raw: string, dial: string): string {
+      const trimmed = raw.trim();
+      const startsWithPlus = trimmed.startsWith("+");
+      const digits = trimmed.replace(/\D/g, "");
+      if (!digits) return "";
+      if (startsWithPlus) return `+${digits}`; // l'utente ha già il prefisso
+      if (digits.startsWith("00")) return `+${digits.slice(2)}`; // 00 == +
+      // tolleranza: ES non ha trunk zero, ma alcuni utenti lo digitano per
+      // abitudine (o copiano un formato estero). Lo scartiamo invece di
+      // bocciare il numero.
+      if (digits.startsWith("0")) return `+${dial}${digits.slice(1)}`;
+      return `+${dial}${digits}`; // numero nazionale nudo
+    }
+
+    function validatePhone(
+      raw: string,
+      dial: string,
+    ): { ok: boolean; value: string; message: string } {
+      const e164 = buildE164(raw, dial);
+      /* Blocco esplicito dei malformati (mai inviati a valle): "+0"/"+00" e
+         country code duplicato (es. +3434…). */
+      if (!e164 || /^\+0/.test(e164) || /^\+34(?:34)/.test(e164)) {
+        return { ok: false, value: "", message: phoneMessages.malformed };
+      }
+      /* Solo ES ammessa: qualsiasi altro country code è fuori scope. */
+      if (!/^\+34\d+$/.test(e164)) {
+        return { ok: false, value: "", message: phoneMessages.unsupported };
+      }
+      const cc = e164.slice(1, 3);
+      const national = e164.slice(3);
+      const entry = PHONE_RULES[cc];
+      if (!entry) {
+        return { ok: false, value: "", message: phoneMessages.unsupported };
+      }
+      if (!entry.rule.test(national)) {
+        return { ok: false, value: "", message: entry.message };
+      }
+      return { ok: true, value: e164, message: "" };
+    }
+
+    /* Reset del custom error appena l'utente modifica il numero. */
+    phoneInput?.addEventListener("input", () => {
+      phoneInput.setCustomValidity("");
+    });
+
+    /* Cambio prefisso: azzera l'errore e aggiorna il placeholder d'esempio
+       al formato del paese selezionato. */
+    prefixSelect?.addEventListener("change", () => {
+      phoneInput?.setCustomValidity("");
+      const example = prefixSelect.selectedOptions[0]?.dataset.example;
+      if (phoneInput && example) phoneInput.placeholder = example;
+    });
+
+    /* Textarea a risposta aperta: crescono col contenuto fino al cap CSS
+       (max-h), poi scrollano. Niente resize iniziale (il form parte hidden,
+       scrollHeight sarebbe 0 → box collassato): il min-h CSS dà l'altezza di
+       partenza, la crescita parte al primo input. */
+    const autoGrow = (el: HTMLTextAreaElement): void => {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    };
+    form
+      .querySelectorAll<HTMLTextAreaElement>("[data-autogrow]")
+      .forEach((el) => {
+        el.addEventListener("input", () => autoGrow(el));
+      });
+
+    /* Lock anti-double-submit: tra preventDefault() e button.disabled
+       passa qualche tick — un doppio click rapido potrebbe far passare
+       due submit. Il flag chiude il varco. */
+    let submitting = false;
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (submitting) return;
+
+      /* Validazione + normalizzazione telefono in E.164. La regola mobile
+         dipende dal prefisso selezionato; il valore normalizzato sostituisce
+         quello digitato nel payload (mai numeri grezzi/malformati a valle).
+         Niente pattern HTML — Astro escapa i backslash, JS è autoritativo. */
+      let normalizedPhone = "";
+      if (phoneInput && prefixSelect) {
+        if (phoneInput.value.trim() === "") {
+          /* Campo vuoto: lascia parlare `required` (messaggio nativo) invece
+             del nostro errore di formato. */
+          phoneInput.setCustomValidity("");
+        } else {
+          const result = validatePhone(phoneInput.value, prefixSelect.value);
+          phoneInput.setCustomValidity(result.message);
+          normalizedPhone = result.value;
+        }
+      }
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      submitting = true;
+      if (idle && loading && button) {
+        idle.hidden = true;
+        loading.hidden = false;
+        button.disabled = true;
+        button.setAttribute("aria-busy", "true");
+      }
+
+      /* event_id: UUID condiviso tra Pixel client e CAPI server per
+         deduplicazione lato Meta. Senza dedup, Meta conta lead doppi
+         e ottimizza male le campagne.
+         crypto.randomUUID: Safari 15.4+, Chrome 92+, Firefox 95+ —
+         copertura ampia per il target mobile italiano. */
+      const eventId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+      /* Fire Pixel `Lead` lato client con eventID. fbq esiste solo se
+         PUBLIC_META_PIXEL_ID è settato (vedi Pixel.astro). Se manca,
+         no-op silenzioso. */
+      const fbq = (window as unknown as {
+        fbq?: (
+          ...args: [string, string, Record<string, unknown>?, { eventID?: string }?]
+        ) => void;
+      }).fbq;
+      if (typeof fbq === "function") {
+        fbq(
+          "track",
+          "Lead",
+          /* Identificatore di mercato, non di brand: resta valido dopo il
+             rename (vedi BRAND_RENAME_CHECKLIST.md). */
+          { content_name: "es_vsl_lead" },
+          { eventID: eventId },
+        );
+      }
+
+      const data = new FormData(form);
+      const payload = {
+        name: data.get("name"),
+        surname: data.get("surname"),
+        email: data.get("email"),
+        phone: normalizedPhone,
+        age: Number(data.get("age")),
+        occupation: data.get("occupation"),
+        motivation: data.get("motivation"),
+        goal: data.get("goal"),
+        aware: data.get("aware"),
+        consent: data.get("consent") === "on",
+        event_id: eventId,
+      };
+
+      fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch((err) => {
+        /* In DEV vogliamo vedere fallimenti per debug. In prod silenzioso:
+           l'utente non deve mai vedere errori per problemi interni
+           (CLAUDE.md → Form e tracking → Fase 3). Redirect a /gracias
+           avviene comunque sotto. */
+        if (import.meta.env.DEV) {
+          console.warn("[lead] fetch failed", err);
+        }
+      });
+
+      window.location.href = "/gracias";
+    });
+  }
+</script>
