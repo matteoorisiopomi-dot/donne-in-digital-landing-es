@@ -15,8 +15,15 @@ import sitemap from "@astrojs/sitemap";
 // Il fallback è volutamente un dominio .invalid (RFC 2606): se finisce in
 // un build di produzione salta all'occhio in canonical/og:url/sitemap
 // invece di puntare in silenzio a un dominio sbagliato.
+//
+// ⚠️ `||` + `.trim()`, NON `??`: l'import del progetto su Vercel crea le
+// env di .env.example come STRINGHE VUOTE. Con `??` il fallback non
+// scatta (`"" ?? x` → `""`), `site: ""` arriva ad Astro e il build muore
+// con "[config] Astro found issue(s): Invalid URL". Vuoto o soli spazi
+// vanno trattati come env assente.
 const siteUrl =
-  process.env.PUBLIC_SITE_URL ?? "https://example-PLACEHOLDER.invalid";
+  (process.env.PUBLIC_SITE_URL || "").trim() ||
+  "https://example-PLACEHOLDER.invalid";
 
 // Rotte escluse dalla sitemap: tutte noindex.
 //  - /gracias      thank-you page post-submit

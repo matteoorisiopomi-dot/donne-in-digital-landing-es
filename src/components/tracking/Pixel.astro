@@ -14,7 +14,10 @@
  * Decisione 2026-05-07: nessun cookie banner, Pixel acceso senza
  * gating. Allineamento con competitor del verticale.
  */
-const pixelId = import.meta.env.PUBLIC_META_PIXEL_ID;
+// `|| "" + trim()`, non un truthy check secco: su Vercel le env
+// importate da .env.example arrivano come stringhe vuote, e "" o soli
+// spazi devono valere come env assente (niente markup Pixel).
+const pixelId = (import.meta.env.PUBLIC_META_PIXEL_ID || "").trim();
 ---
 
 {

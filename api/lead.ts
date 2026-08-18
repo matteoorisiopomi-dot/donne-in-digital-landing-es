@@ -15,16 +15,52 @@
  *      failure non blocca la response.
  *   6. Risposta al client. In ogni caso il client redirige a /gracias.
  *
- * Logging:
- *   - Successo: solo email + ok.
- *   - Failure: payload completo loggato per recovery.
+ * Logging — ZERO PII, in ogni ramo:
+ *   - `[lead] slack env`: presenza / lunghezza / caratteri trimmati /
+ *     check del prefisso dell'env. MAI il valore: un incoming webhook è
+ *     una credenziale e i log di Vercel li legge più gente del canale.
+ *   - `[lead][slack] accepted|rejected`: status, body di risposta (Slack
+ *     dice "ok", oppure channel_not_found / no_service / invalid_payload)
+ *     e durata della fetch.
+ *   - `[lead][slack] request threw`: nome + messaggio dell'errore e flag
+ *     `aborted`, per distinguere il timeout da DNS/TLS.
+ *   - Correlazione via `eventId`, presente su ogni riga.
+ *
+ * ⚠️ Il payload NON viene più loggato su failure (prima sì, "per
+ * recovery"): erano nome, email e telefono in chiaro nei log. Se un lead
+ * si perde, la traccia è l'`eventId` — il contenuto va recuperato dal
+ * client, non dai log.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 
-import { BRAND_NAME } from "../src/content/copy.ts";
+/* ⛔ QUESTO FILE NON DEVE AVERE IMPORT RELATIVI — di nessun tipo.
+   Solo pacchetti npm (zod, @vercel/node) e builtin `node:`.
+
+   Due crash consecutivi in produzione DE, 2026-08-18, entrambi muti (il
+   client è fire-and-forget e redirige alla thank-you comunque, quindi
+   l'utente vedeva /gracias e il lead spariva):
+
+     1. import da `../src/content/copy.ts`
+        → Cannot find module '/var/task/src/content/copy.ts'
+        `api/` è impacchettata FUORI dalla build Astro: a runtime `src/`
+        non esiste nel bundle.
+
+     2. import da `./_shared/brand.ts`
+        → Cannot find module '/var/task/api/_shared/brand.ts'
+        Vercel COMPILA i .ts della function in .js: a runtime esiste
+        `brand.js`, e uno specifier con estensione `.ts` non risolve.
+
+   Entrambi passavano in locale perché i file `.ts` stanno sul disco.
+   Questo repo aveva lo stesso import del caso 1 e sarebbe crollato al
+   primo deploy: corretto qui in via preventiva, mai andato in produzione.
+
+   Il prezzo è una seconda occorrenza del brand nel repo — vedi
+   BRAND_RENAME_CHECKLIST.md §1, che le elenca entrambe.
+   Guardia automatica: `node scripts/test-api-isolated.mjs`. */
+const BRAND_NAME = "Donne in Digital"; // TEMP brand, vedi checklist
 
 /* Regole telefono per mercato, applicate al numero NAZIONALE (dopo il
    country code). Speculari a PHONE_RULES in OptInGate.astro e in
@@ -186,9 +222,13 @@ async function fireCapiLead(
   eventId: string,
   ctx: CapiContext,
 ): Promise<void> {
-  const datasetId = process.env.META_CAPI_DATASET_ID;
-  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
-  const testEventCode = process.env.META_CAPI_TEST_EVENT_CODE;
+  /* `|| ""` + `.trim()`: su Vercel le env importate da .env.example arrivano
+     come stringhe VUOTE. La stringa vuota è già falsy, ma un valore di soli
+     spazi passerebbe i guard qui sotto e manderebbe a Meta una richiesta con
+     dataset/token spazzatura. Vuoto o spazi = env assente = skip. */
+  const datasetId = (process.env.META_CAPI_DATASET_ID || "").trim();
+  const accessToken = (process.env.META_CAPI_ACCESS_TOKEN || "").trim();
+  const testEventCode = (process.env.META_CAPI_TEST_EVENT_CODE || "").trim();
 
   if (!datasetId || !accessToken) {
     /* Config mancante: senza questo warn il CAPI resta spento in silenzio
@@ -260,6 +300,41 @@ async function fireCapiLead(
   }
 }
 
+/* ---------- Osservabilità webhook Slack ---------- */
+
+/** Prefisso canonico di un incoming webhook Slack. Un URL che non inizia
+ *  così non è un webhook valido: quasi sempre è un copia-incolla parziale
+ *  o l'URL sbagliato incollato nella env. */
+const SLACK_WEBHOOK_PREFIX = "https://hooks.slack.com/";
+
+interface WebhookEnvReport {
+  /** Valore utilizzabile: già trimmato. MAI loggato. */
+  value: string;
+  present: boolean;
+  /** Lunghezza dopo il trim: permette di distinguere "vuota" da "troncata". */
+  length: number;
+  /** Caratteri rimossi dal trim: > 0 = newline/spazi da copia-incolla. */
+  trimmedChars: number;
+  prefixOk: boolean;
+}
+
+/** Ispeziona SLACK_WEBHOOK_URL producendo SOLO metadati loggabili.
+ *  Il valore non finisce mai nel log: un incoming webhook è una credenziale,
+ *  chi legge i log di Vercel potrebbe non avere diritto di postare nel canale. */
+function inspectWebhookEnv(raw: string | undefined): WebhookEnvReport {
+  const original = raw ?? "";
+  /* trim: un newline finale da copia-incolla rende la fetch muta o la fa
+     fallire in modo incomprensibile. Vuoto o soli spazi = env assente. */
+  const value = original.trim();
+  return {
+    value,
+    present: value.length > 0,
+    length: value.length,
+    trimmedChars: original.length - value.length,
+    prefixOk: value.startsWith(SLACK_WEBHOOK_PREFIX),
+  };
+}
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
@@ -279,25 +354,49 @@ export default async function handler(
     return;
   }
 
-  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-  if (!webhookUrl) {
-    console.warn("[lead] SLACK_WEBHOOK_URL missing — payload not delivered", {
-      email: parsed.data.email,
+  /* event_id: usa quello dal client (dedup con Pixel) o ne genera uno
+     server-side per il fire CAPI. Calcolato PRIMA del check sull'env così
+     ogni riga di log della richiesta è correlabile, anche il 503. */
+  const eventId = parsed.data.event_id ?? randomUUID();
+  const capiCtx = extractCapiContext(req);
+
+  const webhook = inspectWebhookEnv(process.env.SLACK_WEBHOOK_URL);
+
+  /* Diagnostica dell'env su OGNI richiesta: senza questa riga una env
+     assente, troncata o incollata con un newline sono indistinguibili nei
+     log di Vercel. Metadati soltanto — mai il valore. */
+  console.info("[lead] slack env", {
+    eventId,
+    present: webhook.present,
+    length: webhook.length,
+    trimmedChars: webhook.trimmedChars,
+    prefixOk: webhook.prefixOk,
+  });
+
+  if (!webhook.present) {
+    console.error("[lead] SLACK_WEBHOOK_URL missing — lead NOT delivered", {
+      eventId,
     });
     res.status(503).json({ ok: false, error: "config_missing" });
     return;
   }
 
-  /* event_id: usa quello dal client (dedup con Pixel) o ne genera uno
-     server-side per il fire CAPI. */
-  const eventId = parsed.data.event_id ?? randomUUID();
-  const capiCtx = extractCapiContext(req);
+  if (!webhook.prefixOk) {
+    /* Non blocca: la fetch parte comunque e l'errore vero lo dirà Slack.
+       Ma se l'env non inizia con l'host giusto, la causa è quasi certamente
+       questa e va detta a voce alta. */
+    console.error(
+      `[lead] SLACK_WEBHOOK_URL does not start with ${SLACK_WEBHOOK_PREFIX} — wrong value in env?`,
+      { eventId, length: webhook.length },
+    );
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const startedAt = Date.now();
 
   try {
-    const slackRes = await fetch(webhookUrl, {
+    const slackRes = await fetch(webhook.value, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(buildSlackPayload(parsed.data)),
@@ -305,16 +404,34 @@ export default async function handler(
     });
     clearTimeout(timeoutId);
 
+    /* Il body si legge SEMPRE, anche su 200: Slack risponde "ok" quando
+       accetta, e con stringhe parlanti quando rifiuta (channel_not_found,
+       no_service, invalid_payload). Su un 200 "ok" la consegna è confermata
+       dal lato Slack: se il messaggio non compare nel canale atteso, allora
+       il webhook punta a un canale diverso da quello che si crede. */
+    const slackBody = (await slackRes.text().catch(() => "<unreadable>")).slice(
+      0,
+      200,
+    );
+    const durationMs = Date.now() - startedAt;
+
     if (!slackRes.ok) {
-      const bodyText = await slackRes.text().catch(() => "");
-      console.error("[lead] Slack post failed", {
+      console.error("[lead][slack] rejected", {
+        eventId,
         status: slackRes.status,
-        body: bodyText,
-        payload: parsed.data,
+        body: slackBody,
+        durationMs,
       });
       res.status(502).json({ ok: false, error: "slack_post_failed" });
       return;
     }
+
+    console.info("[lead][slack] accepted", {
+      eventId,
+      status: slackRes.status,
+      body: slackBody,
+      durationMs,
+    });
 
     /* CAPI fire DOPO Slack OK. Fire-and-forget intenzionale: la
        deliverability del lead a Slack è priorità 1, il tracking è
@@ -322,13 +439,19 @@ export default async function handler(
        voglio penalizzare la response al client. */
     void fireCapiLead(parsed.data, eventId, capiCtx);
 
-    console.info("[lead] delivered", { email: parsed.data.email, eventId });
+    console.info("[lead] delivered", { eventId, durationMs });
     res.status(200).json({ ok: true, event_id: eventId });
   } catch (err) {
     clearTimeout(timeoutId);
-    console.error("[lead] Slack request threw", {
-      err: err instanceof Error ? err.message : String(err),
-      payload: parsed.data,
+    const durationMs = Date.now() - startedAt;
+    /* Niente catch muto: nome + messaggio dell'errore, così un abort da
+       timeout (AbortError) si distingue da un DNS/TLS fallito. */
+    console.error("[lead][slack] request threw", {
+      eventId,
+      name: err instanceof Error ? err.name : "unknown",
+      message: err instanceof Error ? err.message : String(err),
+      aborted: controller.signal.aborted,
+      durationMs,
     });
     res.status(502).json({ ok: false, error: "slack_unreachable" });
   }
