@@ -49,7 +49,7 @@ export const meta = {
  *
  * NOTA: il logo è un asset grafico, NON segue `BRAND_NAME`.
  *
- * ⚠️ SLOT VUOTO dal rename a "Chicas Digitales": i file in
+ * ⚠️ SLOT VUOTO dal rebrand del 2026-09-07: i file in
  * `/public/assets/logo.*` sono l'artwork del brand PRECEDENTE e
  * mostrerebbero il nome sbagliato. Finché `logoSrc` è `null`, Navbar e
  * Footer rendono un wordmark testuale da `BRAND_NAME`.
