@@ -18,4 +18,4 @@ Disallow: /privacidad
 #
 # Este archivo es estático: si el dominio cambia, hay que actualizar la
 # línea de abajo a mano (y también PUBLIC_SITE_URL en Vercel).
-Sitemap: https://chicasdigitales.es/sitemap-index.xml
+Sitemap: https://chicasdigitales.com/sitemap-index.xml

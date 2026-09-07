@@ -55,8 +55,8 @@ Tagline ufficiale, verbatim: **"Tu nuevo oficio digital, paso a paso.
 Desde casa."** — `TAGLINE` in `copy.ts`, usata nel footer e come meta
 description.
 
-Dominio: **apex `chicasdigitales.es`**, nessun sottodominio.
-Email di contatto: **info@chicasdigitales.es**.
+Dominio: **apex `chicasdigitales.com`**, nessun sottodominio.
+Email di contatto: **info@chicasdigitales.com**.
 
 ### Telefono
 

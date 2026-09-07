@@ -215,7 +215,7 @@ export const optinGate = {
 
 export const footer = {
   tagline: TAGLINE,
-  email: "info@chicasdigitales.es",
+  email: "info@chicasdigitales.com",
   copyright: `© ${new Date().getFullYear()} ${BRAND_NAME}. Todos los derechos reservados.`,
   // Disclaimer di non-affiliazione richiesto per il traffico paid Meta/Google.
   disclaimer:

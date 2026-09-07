@@ -7,7 +7,7 @@ import sitemap from "@astrojs/sitemap";
 // URL canonico del sito. Usato per canonical URL, og:url assoluti,
 // sitemap.xml. Letto da env, con fallback al dominio di produzione.
 //
-// Dominio deciso: apex `chicasdigitales.es`, nessun sottodominio.
+// Dominio deciso: apex `chicasdigitales.com`, nessun sottodominio.
 // Il fallback qui sotto è il dominio reale, così canonical/og:url/sitemap
 // sono corretti anche se l'env non è settata. Su Vercel resta comunque
 // buona norma settare PUBLIC_SITE_URL (Project → Settings → Environment
@@ -19,7 +19,7 @@ import sitemap from "@astrojs/sitemap";
 // con "[config] Astro found issue(s): Invalid URL". Vuoto o soli spazi
 // vanno trattati come env assente.
 const siteUrl =
-  (process.env.PUBLIC_SITE_URL || "").trim() || "https://chicasdigitales.es";
+  (process.env.PUBLIC_SITE_URL || "").trim() || "https://chicasdigitales.com";
 
 // Rotte escluse dalla sitemap: tutte noindex.
 //  - /gracias      thank-you page post-submit
