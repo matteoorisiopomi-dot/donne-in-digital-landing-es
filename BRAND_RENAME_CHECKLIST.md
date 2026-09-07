@@ -1,8 +1,9 @@
 # BRAND RENAME CHECKLIST — mercato ES
 
-Il brand definitivo per Spagna/Germania **non è ancora deciso**. Questa
-copia usa un valore temporaneo. Questo documento dice esattamente dove
-cambiarlo e cosa NON si aggiorna da solo.
+Brand ES: **Chicas Digitales** (rename del 2026-09-07, da "Donne in
+Digital"). In tutto il codice è una costante duplicata in due punti.
+Questo documento dice dove sta, cosa si aggiorna da solo, e cosa invece
+va rifatto a mano.
 
 ---
 
@@ -12,11 +13,11 @@ La costante sta in **esattamente due punti**, entrambi marcati `TEMP`. Al
 rebrand vanno cambiati **tutti e due, nello stesso commit**:
 
 ```
-src/content/copy.ts  →  export const BRAND_NAME = "<marca actual>";   # client
-api/lead.ts          →  const BRAND_NAME = "<marca actual>";          # serverless function
+src/content/copy.ts  →  export const BRAND_NAME = "Chicas Digitales";   # client
+api/lead.ts          →  const BRAND_NAME = "Chicas Digitales";          # serverless function
 ```
 
-Verifica: `grep -rn '"Donne in Digital"' src/ api/` deve restituire
+Verifica: `grep -rn '"Chicas Digitales"' src/ api/` deve restituire
 **esattamente 2 righe**, una per file. Zero è un errore (brand perso), tre o
 più significa che qualcuno l'ha hardcodato da qualche altra parte.
 
@@ -102,11 +103,11 @@ il wordmark disegnato dentro. **Vanno rifatti da un designer.**
 
 ### 🔴 ALTA priorità — bloccanti per il paid traffic
 
-| Asset                          | Percorso                                      | Specifiche                                        | Note                                                                                                                                                                                                                                                                                                                                                                                           |
-| ------------------------------ | --------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **OG image**                   | `public/og-image.jpg` — **DA CREARE EX NOVO** | 1200×630, JPG, < 100 KB                           | **Non esiste in questa copia**: l'OG image italiana è stata rimossa. Finché manca, `index.astro` non passa `ogImage` e `Base.astro` non emette `og:image` (`twitter:card` cade su `summary`): nessun 404 sui crawler, ma **zero thumbnail** su condivisioni e anteprime — impatto diretto sul CTR degli ads. Una volta creata: rimettere `ogImage="/og-image.jpg"` in `src/pages/index.astro`. |
-| **Logo SVG** (navbar + footer) | `public/assets/logo.svg`                      | 8 KB, viewBox `180 114 588 373`, `fill="#18082a"` | Wordmark **vettorizzato**: il testo è convertito in tracciati, non è modificabile da codice. Referenziato via `brand.logoSrc`. Se cambia l'aspect ratio, aggiornare `brand.logoWidth` / `brand.logoHeight` in `copy.ts` (oggi 588×373) o si introduce CLS.                                                                                                                                     |
-| **Logo PNG** (fallback)        | `public/assets/logo.png`                      | 112 KB, stesso aspect ratio dell'SVG              | Fallback legacy. Rifare insieme all'SVG o eliminare se non serve più.                                                                                                                                                                                                                                                                                                                          |
+| Asset                      | Percorso                                      | Specifiche                                                | Note                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------- | --------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OG image**               | `public/og-image.jpg` — **DA CREARE EX NOVO** | 1200×630, JPG, < 100 KB                                   | **Non esiste in questa copia**: l'OG image italiana è stata rimossa. Finché manca, `index.astro` non passa `ogImage` e `Base.astro` non emette `og:image` (`twitter:card` cade su `summary`): nessun 404 sui crawler, ma **zero thumbnail** su condivisioni e anteprime — impatto diretto sul CTR degli ads. Una volta creata: rimettere `ogImage="/og-image.jpg"` in `src/pages/index.astro`. |
+| **Logo** (navbar + footer) | `public/assets/logo.svg` / `.png`             | ⚠️ **artwork del brand PRECEDENTE**, non più referenziato | `brand.logoSrc` è `null`: Navbar e Footer rendono un wordmark testuale da `BRAND_NAME`. Quando arriva il logo nuovo: file in `/public/assets/`, imposta `logoSrc` e aggiorna `logoWidth`/`logoHeight` alle dimensioni intrinseche reali, o si introduce CLS. I due file vecchi vanno cancellati.                                                                                               |
+| **Logo PNG** (fallback)    | `public/assets/logo.png`                      | 112 KB, stesso aspect ratio dell'SVG                      | Fallback legacy. Rifare insieme all'SVG o eliminare se non serve più.                                                                                                                                                                                                                                                                                                                          |
 
 ### 🟠 MEDIA priorità — brand consistency, non bloccanti
 

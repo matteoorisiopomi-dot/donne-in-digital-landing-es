@@ -16,13 +16,23 @@ import { brand } from "../content/copy.ts";
     class="mx-auto flex h-full max-w-4xl items-center justify-center px-6 sm:px-8"
   >
     <a href="/" class="inline-flex h-full items-center" aria-label={brand.name}>
-      <img
-        src={brand.logoSrc}
-        alt={brand.name}
-        width={brand.logoWidth}
-        height={brand.logoHeight}
-        class="block h-[62px] w-auto sm:h-[76px]"
-      />
+      {
+        brand.logoSrc ? (
+          <img
+            src={brand.logoSrc}
+            alt={brand.name}
+            width={brand.logoWidth}
+            height={brand.logoHeight}
+            class="block h-[62px] w-auto sm:h-[76px]"
+          />
+        ) : (
+          /* Slot logo vuoto (vedi `brand` in copy.ts): wordmark testuale
+             finché non arriva l'artwork del brand nuovo. */
+          <span class="text-xl font-[var(--font-fraunces)] font-semibold tracking-tight text-[var(--color-ink)] sm:text-2xl">
+            {brand.name}
+          </span>
+        )
+      }
     </a>
   </div>
 </header>

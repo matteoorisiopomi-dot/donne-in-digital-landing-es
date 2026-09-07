@@ -5,16 +5,13 @@ import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 
 // URL canonico del sito. Usato per canonical URL, og:url assoluti,
-// sitemap.xml. Letto da env con fallback PLACEHOLDER.
+// sitemap.xml. Letto da env, con fallback al dominio di produzione.
 //
-// TODO (go-live): il dominio del mercato spagnolo non esiste ancora.
-// Registrarlo, poi settare PUBLIC_SITE_URL=https://<dominio-finale> nel
-// pannello Vercel (Project → Settings → Environment Variables) e fare un
-// redeploy di production. Niente code change necessario.
-//
-// Il fallback è volutamente un dominio .invalid (RFC 2606): se finisce in
-// un build di produzione salta all'occhio in canonical/og:url/sitemap
-// invece di puntare in silenzio a un dominio sbagliato.
+// Dominio deciso: apex `chicasdigitales.es`, nessun sottodominio.
+// Il fallback qui sotto è il dominio reale, così canonical/og:url/sitemap
+// sono corretti anche se l'env non è settata. Su Vercel resta comunque
+// buona norma settare PUBLIC_SITE_URL (Project → Settings → Environment
+// Variables) per poter puntare a un dominio diverso senza code change.
 //
 // ⚠️ `||` + `.trim()`, NON `??`: l'import del progetto su Vercel crea le
 // env di .env.example come STRINGHE VUOTE. Con `??` il fallback non
@@ -22,8 +19,7 @@ import sitemap from "@astrojs/sitemap";
 // con "[config] Astro found issue(s): Invalid URL". Vuoto o soli spazi
 // vanno trattati come env assente.
 const siteUrl =
-  (process.env.PUBLIC_SITE_URL || "").trim() ||
-  "https://example-PLACEHOLDER.invalid";
+  (process.env.PUBLIC_SITE_URL || "").trim() || "https://chicasdigitales.es";
 
 // Rotte escluse dalla sitemap: tutte noindex.
 //  - /gracias      thank-you page post-submit

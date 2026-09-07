@@ -18,15 +18,21 @@
  */
 
 /**
- * TEMP: brand DE/ES in definizione, sostituire prima del go-live.
- * Unico punto da cambiare: vedi BRAND_RENAME_CHECKLIST.md
+ * Brand del mercato ES. Duplicata in `api/lead.ts` (la function non può
+ * importare da `src/`): al rename vanno cambiate ENTRAMBE nello stesso
+ * commit — vedi BRAND_RENAME_CHECKLIST.md §1.
  */
-export const BRAND_NAME = "Donne in Digital";
+export const BRAND_NAME = "Chicas Digitales";
+
+/**
+ * Tagline del brand. Testo del committente, VERBATIM.
+ * Usata nel footer sotto il wordmark e come meta description.
+ */
+export const TAGLINE = "Tu nuevo oficio digital, paso a paso. Desde casa.";
 
 export const meta = {
   title: `${BRAND_NAME} — Trabaja en remoto gestionando la comunicación online`,
-  description:
-    "Aprende a gestionar los chats, los mensajes y la presencia online de pequeñas empresas. Desde casa. Aunque empieces de cero.",
+  description: TAGLINE,
 } as const;
 
 /* ---------- Brand (logo + nome) ---------- */
@@ -41,12 +47,21 @@ export const meta = {
  * Se sostituisci il file con un logo di aspect ratio diverso, aggiorna
  * questi due numeri al rapporto reale.
  *
- * NOTA: il logo è un asset grafico, NON segue `BRAND_NAME`. Al rename del
- * brand va rifatto a mano — vedi BRAND_RENAME_CHECKLIST.md.
+ * NOTA: il logo è un asset grafico, NON segue `BRAND_NAME`.
+ *
+ * ⚠️ SLOT VUOTO dal rename a "Chicas Digitales": i file in
+ * `/public/assets/logo.*` sono l'artwork del brand PRECEDENTE e
+ * mostrerebbero il nome sbagliato. Finché `logoSrc` è `null`, Navbar e
+ * Footer rendono un wordmark testuale da `BRAND_NAME`.
+ *
+ * Quando arriva il logo nuovo: metti il file in `/public/assets/`,
+ * imposta `logoSrc` e aggiorna `logoWidth`/`logoHeight` alle dimensioni
+ * INTRINSECHE reali del file (servono a evitare CLS: il browser conosce
+ * l'aspect ratio prima del download).
  */
 export const brand = {
   name: BRAND_NAME,
-  logoSrc: "/assets/logo.svg",
+  logoSrc: null as string | null,
   logoWidth: 588,
   logoHeight: 373,
 } as const;
@@ -176,7 +191,8 @@ export const optinGate = {
     occupation: "Ocupación actual",
     occupationPlaceholder: "p. ej. dependienta, peluquera, administrativa",
     motivation: "¿Por qué ahora? ¿Qué te ha llevado a dejarnos tus datos hoy?",
-    motivationPlaceholder: "Responde con tus palabras, aunque sean pocas líneas.",
+    motivationPlaceholder:
+      "Responde con tus palabras, aunque sean pocas líneas.",
     goal: "Si por fin aprendieras a trabajar online desde casa, ¿qué cambiaría de verdad en tu día a día?",
     goalPlaceholder: "Responde con tus palabras, aunque sean pocas líneas.",
     awareLegend: "¿Invertirías en ti misma?",
@@ -197,18 +213,12 @@ export const optinGate = {
 /* ---------- Footer (minimal) ---------- */
 
 export const footer = {
-  tagline: "Comunicación digital para quien quiere cambiar de trabajo.",
+  tagline: TAGLINE,
+  email: "info@chicasdigitales.es",
   copyright: `© ${new Date().getFullYear()} ${BRAND_NAME}. Todos los derechos reservados.`,
   // Disclaimer di non-affiliazione richiesto per il traffico paid Meta/Google.
   disclaimer:
     "Este sitio no forma parte del sitio web de Meta ni de Google. Tampoco está avalado por Meta ni por Google en modo alguno.",
-  /**
-   * Link legali discreti sotto il disclaimer. Le pagine sono STUB in
-   * stato DRAFT: il testo definitivo arriva dal legal pack prima del
-   * go-live.
-   */
-  legalLinks: [
-    { label: "Aviso legal", href: "/aviso-legal" },
-    { label: "Política de privacidad", href: "/privacidad" },
-  ],
+  /* Niente link legali nel footer: /aviso-legal e /privacidad restano
+     stub DRAFT noindex, non linkati finché non arriva il legal pack. */
 } as const;

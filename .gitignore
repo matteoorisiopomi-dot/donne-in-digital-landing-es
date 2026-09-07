@@ -30,3 +30,6 @@ public/assets/*.webm
 
 # Claude Code local settings (personali, non committare)
 .claude/settings.local.json
+
+# Vercel CLI (link locale al progetto: non va condiviso)
+.vercel

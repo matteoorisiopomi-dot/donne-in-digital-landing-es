@@ -16,9 +16,6 @@ Disallow: /privacidad
 
 # Sitemap generada automáticamente por @astrojs/sitemap durante el build.
 #
-# TODO (lanzamiento): el dominio del mercado español todavía no existe.
-# Una vez registrado y configurado PUBLIC_SITE_URL en Vercel, descomenta
-# la línea de abajo y sustituye el dominio. Este archivo es estático: hay
-# que actualizarlo a mano si el dominio cambia.
-#
-# Sitemap: https://<dominio-final>/sitemap-index.xml
+# Este archivo es estático: si el dominio cambia, hay que actualizar la
+# línea de abajo a mano (y también PUBLIC_SITE_URL en Vercel).
+Sitemap: https://chicasdigitales.es/sitemap-index.xml

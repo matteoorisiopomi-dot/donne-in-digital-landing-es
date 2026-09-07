@@ -1,5 +1,14 @@
 ---
 import { brand, footer } from "../content/copy.ts";
+
+/*
+  Footer minimale: wordmark, tagline, copyright, disclaimer Meta/Google,
+  contatto email.
+
+  Niente link legali: /aviso-legal e /privacidad sono stub DRAFT noindex e
+  non vanno linkati finché non arriva il legal pack (linkarli li esporrebbe
+  ai crawler nonostante il noindex, e mostrerebbe testo non definitivo).
+*/
 ---
 
 <footer class="border-t border-[var(--color-ink)]/10">
@@ -8,15 +17,33 @@ import { brand, footer } from "../content/copy.ts";
       class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"
     >
       <div>
-        <img
-          src={brand.logoSrc}
-          alt={brand.name}
-          width={brand.logoWidth}
-          height={brand.logoHeight}
-          class="h-10 w-auto sm:h-[46px]"
-        />
+        {
+          brand.logoSrc ? (
+            <img
+              src={brand.logoSrc}
+              alt={brand.name}
+              width={brand.logoWidth}
+              height={brand.logoHeight}
+              class="h-10 w-auto sm:h-[46px]"
+            />
+          ) : (
+            /* Slot logo vuoto (vedi `brand` in copy.ts): wordmark testuale
+               finché non arriva l'artwork del brand nuovo. */
+            <p class="text-lg font-[var(--font-fraunces)] font-semibold tracking-tight text-[var(--color-ink)] sm:text-xl">
+              {brand.name}
+            </p>
+          )
+        }
         <p class="mt-3 max-w-sm text-sm text-[var(--color-muted)]">
           {footer.tagline}
+        </p>
+        <p class="mt-2 text-sm text-[var(--color-muted)]">
+          <a
+            href={`mailto:${footer.email}`}
+            class="underline underline-offset-2 transition-colors hover:text-[var(--color-ink)]"
+          >
+            {footer.email}
+          </a>
         </p>
       </div>
 
@@ -30,20 +57,5 @@ import { brand, footer } from "../content/copy.ts";
     >
       {footer.disclaimer}
     </p>
-
-    {/* Link legali discreti: opacity bassa per non competere col
-         disclaimer, hover che sale a /70 per restare leggibile. */}
-    <nav class="mt-3 flex flex-wrap gap-x-4 gap-y-1" aria-label="Enlaces legales">
-      {
-        footer.legalLinks.map((link) => (
-          <a
-            href={link.href}
-            class="text-[10px] text-[var(--color-muted)]/30 underline underline-offset-2 transition-colors hover:text-[var(--color-muted)]/70"
-          >
-            {link.label}
-          </a>
-        ))
-      }
-    </nav>
   </div>
 </footer>

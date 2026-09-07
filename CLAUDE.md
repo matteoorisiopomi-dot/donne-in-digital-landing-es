@@ -19,11 +19,11 @@
 
 Questo è il repo della **landing ES**. Repo fratelli:
 
-| Repo | Ruolo |
-| --- | --- |
-| `donne-in-digital-landing` | mercato **IT**, **PRODUZIONE** — **intoccabile da qui** |
-| `donne-in-digital-landing-es` | questo repo, mercato ES |
-| `donne-in-digital-landing-de` | mercato DE |
+| Repo                          | Ruolo                                                   |
+| ----------------------------- | ------------------------------------------------------- |
+| `donne-in-digital-landing`    | mercato **IT**, **PRODUZIONE** — **intoccabile da qui** |
+| `donne-in-digital-landing-es` | questo repo, mercato ES                                 |
+| `donne-in-digital-landing-de` | mercato DE                                              |
 
 Da una sessione di lavoro su questo repo non si scrive **mai** nulla
 fuori da questa cartella.
@@ -40,21 +40,29 @@ Stringhe utente in **castigliano di Spagna**, **tuteo**, registro sobrio,
 **anti-hype**.
 
 - **VIETATO** `certificación oficial`: sempre **`certificado emitido por
-  {BRAND_NAME}`**.
+{BRAND_NAME}`**.
 - **Zero income claims.**
 
 ### Brand
 
-Il brand vive **SOLO** nella costante **`BRAND_NAME`**
-(`src/content/copy.ts`), oggi placeholder `"Donne in Digital"`. Il rename
-è previsto a breve (nome in screening): seguire
+Il brand è **`Chicas Digitales`** (rename del 2026-09-07). Vive in
+**`BRAND_NAME`**, duplicata in **due** punti: `src/content/copy.ts`
+(client) e `api/lead.ts` (la function non può importare da `src/`).
+Al rename si cambiano **entrambe nello stesso commit** — vedi
 [`BRAND_RENAME_CHECKLIST.md`](./BRAND_RENAME_CHECKLIST.md).
+
+Tagline ufficiale, verbatim: **"Tu nuevo oficio digital, paso a paso.
+Desde casa."** — `TAGLINE` in `copy.ts`, usata nel footer e come meta
+description.
+
+Dominio: **apex `chicasdigitales.es`**, nessun sottodominio.
+Email di contatto: **info@chicasdigitales.es**.
 
 ### Telefono
 
 Solo **+34 mobile**, regex `/^(?:6\d|7[1-9])\d{7}$/`. Client e server
-**allineati**. Il range `70x` è **escluso di proposito**: è *numeración
-personal*, non un móvil, e l'hint del form promette "Solo números de móvil".
+**allineati**. Il range `70x` è **escluso di proposito**: è _numeración
+personal_, non un móvil, e l'hint del form promette "Solo números de móvil".
 
 ### Tracciamento
 
@@ -73,20 +81,20 @@ attivare il pixel con traffico reale.
 
 ## Differenze note vs copia IT (elenco non esaustivo)
 
-| Nella copia IT sotto | In questa codebase |
-| --- | --- |
-| rotta `/grazie` | rotta **`/gracias`** |
+| Nella copia IT sotto                    | In questa codebase                                                                                   |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| rotta `/grazie`                         | rotta **`/gracias`**                                                                                 |
 | video Vimeo `1190625710` / `1215128575` | `vsl.video = { provider: "placeholder" }` — nessun video, **niente traffico paid finché resta così** |
-| `optinGate.timerSeconds = 240` | `570` ereditato dal VSL IT, da **ricalcolare** (`durata − 60`) all'arrivo del VSL ES |
-| env `SITE_URL` | env **`PUBLIC_SITE_URL`** (`astro.config.mjs`) |
-| dominio `vsl.donneindigital.ch` | nessun dominio: fallback `https://example-PLACEHOLDER.invalid` |
-| form a 8 campi | **10 campi**: + `motivation` + `goal` (risposte aperte) |
-| `og-image.jpg` presente | **assente**, da creare ex novo |
-| `public/site.webmanifest` statico | generato da `src/pages/site.webmanifest.ts` |
-| telefono IT/CH | **solo ES (+34)**, solo móviles `6x` / `71x-79x` |
-| "niente pagina privacy" | `/privacidad` e `/aviso-legal` presenti come **stub BORRADOR** |
-| copy italiano | copy **castellano di Spagna** in `src/content/copy.ts` |
-| `docs/` con audit e report Lighthouse | **cartella rimossa**: erano metriche e doc del sito IT |
+| `optinGate.timerSeconds = 240`          | `570` ereditato dal VSL IT, da **ricalcolare** (`durata − 60`) all'arrivo del VSL ES                 |
+| env `SITE_URL`                          | env **`PUBLIC_SITE_URL`** (`astro.config.mjs`)                                                       |
+| dominio `vsl.donneindigital.ch`         | nessun dominio: fallback `https://example-PLACEHOLDER.invalid`                                       |
+| form a 8 campi                          | **10 campi**: + `motivation` + `goal` (risposte aperte)                                              |
+| `og-image.jpg` presente                 | **assente**, da creare ex novo                                                                       |
+| `public/site.webmanifest` statico       | generato da `src/pages/site.webmanifest.ts`                                                          |
+| telefono IT/CH                          | **solo ES (+34)**, solo móviles `6x` / `71x-79x`                                                     |
+| "niente pagina privacy"                 | `/privacidad` e `/aviso-legal` presenti come **stub BORRADOR**                                       |
+| copy italiano                           | copy **castellano di Spagna** in `src/content/copy.ts`                                               |
+| `docs/` con audit e report Lighthouse   | **cartella rimossa**: erano metriche e doc del sito IT                                               |
 
 > **📋 Task list azionabile**: vedi [`TODO.md`](./TODO.md) per il piano
 > di lavoro corrente con priorità, file coinvolti e criteri di "fatto".
@@ -113,6 +121,7 @@ dopo il submit la coach del team richiama il contatto al numero lasciato.
 > invariati per non falsare la cronologia.
 
 **Cosa funziona già:**
+
 - ✅ Scaffolding Astro 6 + Tailwind v4 + TypeScript strict + Zod.
 - ✅ Layout `Base.astro` (head, OG, font Inter + Fraunces self-hosted,
   supporto `noindex`).
@@ -192,8 +201,8 @@ dopo il submit la coach del team richiama il contatto al numero lasciato.
   - `/public/site.webmanifest` — manifest PWA (`name`, `short_name`,
     `theme_color: #18082a` ink per status bar mobile,
     `background_color: #e8aacf` paper).
-  Il bundle copre tutti i device. `Base.astro:37-42` referenzia
-  l'intera batteria.
+    Il bundle copre tutti i device. `Base.astro:37-42` referenzia
+    l'intera batteria.
 
 - ✅ **Sessione 1 — Quick wins (2026-05-08)**:
   - **`/api/lead.ts`** Vercel serverless function (Opzione B, root
@@ -299,7 +308,7 @@ dopo il submit la coach del team richiama il contatto al numero lasciato.
 - ✅ **Sessione 6 — Privacy page + final go-live (2026-05-09)**:
   - **`src/pages/privacy.astro`** aggiunta (informativa GDPR + nLPD CH).
     `PRIVACY_EMAIL = "donneindigital@gmail.com"`, `LAST_UPDATED =
-    "9 maggio 2026"`. Marcata `noindex`.
+"9 maggio 2026"`. Marcata `noindex`.
   - **Footer**: link `Privacy Policy` discreto sotto disclaimer
     (`text-[10px]`, opacity `/30` per blend con sfondo, hover
     sale a `/70` per leggibilità).
@@ -337,14 +346,14 @@ risolte **non si lancia traffico paid**.
 ### P1 — Alto impatto (prima del paid traffic vero)
 
 - ✅ **Meta Pixel + CAPI (Fase 4)** — chiusa 2026-05-09, commit `db9d658`
-  + fix `5295318` (IIFE unwrap). Env vars settati su Vercel:
-  `PUBLIC_META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`, `META_CAPI_DATASET_ID`.
-  PageView client-side + Lead client+server con dedup `event_id`,
-  hash SHA-256 user_data. **Acceso senza cookie banner** (decisione
-  2026-05-07). Trade-off legale registrato in "GDPR".
-  ⬜ **Verifica Meta Business `vsl.donneindigital.ch`** — DNS TXT
-  pending (cliente farà più tardi). Senza, ottimizzazione campagne
-  Meta penalizzata ma Pixel/CAPI funzionano.
+  - fix `5295318` (IIFE unwrap). Env vars settati su Vercel:
+    `PUBLIC_META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`, `META_CAPI_DATASET_ID`.
+    PageView client-side + Lead client+server con dedup `event_id`,
+    hash SHA-256 user_data. **Acceso senza cookie banner** (decisione
+    2026-05-07). Trade-off legale registrato in "GDPR".
+    ⬜ **Verifica Meta Business `vsl.donneindigital.ch`** — DNS TXT
+    pending (cliente farà più tardi). Senza, ottimizzazione campagne
+    Meta penalizzata ma Pixel/CAPI funzionano.
 - ✅ **Logo SVG vettoriale** (2026-05-08). `/public/assets/logo.svg`
   (8 KB, viewBox 947×593). Convertito da PNG via SVGcode.app
   (potrace), `fill="#18082a"` aggiunto al root per match palette
@@ -409,6 +418,7 @@ stipendio basso, sensazione di stallo.
 presenza online di piccole aziende. 1–2k/mese partendo da zero.
 
 **Funnel — VSL squeeze pura:**
+
 1. video ads Meta (6 varianti) → landing.
 2. Sopra il fold: **video VSL** + countdown timer (niente headline,
    niente sottotitolo: solo il player).
@@ -423,6 +433,7 @@ presenza online di piccole aziende. 1–2k/mese partendo da zero.
    futuro** (vedi Fase 3). Pixel/CAPI in Fase 4.
 
 **Note importanti sul funnel:**
+
 - Niente sezioni Pain/Transformation/SocialProof/HowItWorks sopra o
   sotto il fold: tutta la persuasione la fa il **video**. I componenti
   esistono ancora in `src/components/` come riserva (vedi sotto), ma
@@ -447,7 +458,7 @@ presenza online di piccole aziende. 1–2k/mese partendo da zero.
   > "partite da zero."
 - No emoji nei testi della landing salvo decisione esplicita.
 - No claim assoluti tipo "garantito", "100%", "sicuro": problemi legali
-  + stona col tono.
+  - stona col tono.
 
 ## Stack
 
@@ -465,6 +476,7 @@ presenza online di piccole aziende. 1–2k/mese partendo da zero.
 ## Vincoli tecnici
 
 ### Performance budget
+
 - **LCP < 2.5s** su 4G mobile italiano
 - **CLS < 0.05**
 - **INP < 200ms**
@@ -475,11 +487,13 @@ Ogni 100ms in più brucia conversioni reali. Prima di aggiungere qualunque
 script o dipendenza, valuta l'impatto su questi numeri.
 
 ### Mobile-first
+
 95%+ del traffico arriverà mobile da Meta Ads. Disegna mobile prima,
 adatta desktop dopo. Test su device reale prima del go-live, non solo
 DevTools.
 
 ### Asset
+
 - **Immagini:** WebP, dimensioni esatte, `loading="lazy"` ovunque tranne
   hero. `width`/`height` espliciti per evitare CLS.
 - **Font:** massimo 2 weight, self-hosted in `public/fonts/`,
@@ -487,6 +501,7 @@ DevTools.
 - **Niente icon-font.** Icone come SVG inline o sprite.
 
 ### Niente dipendenze pesanti
+
 - No Framer Motion / GSAP / animation libs → animazioni in CSS puro.
 - No librerie UI (Radix, Headless UI, ecc.) → componenti scritti a mano.
 - No Lodash / Moment / date-fns → API native.
@@ -514,7 +529,7 @@ DevTools.
     `META_CAPI_ACCESS_TOKEN`, `SLACK_WEBHOOK_URL`). **Mai** chiavi
     private nel client.
 - **TypeScript strict.** Niente `any`. Se non sai il tipo, definiscilo o chiedi.
-- **Commenti:** solo dove il *perché* non è ovvio. Non commentare il *cosa*.
+- **Commenti:** solo dove il _perché_ non è ovvio. Non commentare il _cosa_.
   Niente TODO orfani: o lo fai, o apri una issue.
 
 ## Struttura del progetto
@@ -592,6 +607,7 @@ salvato in `localStorage`, TTL 24h, vedi `OptInGate.astro`).
 Si imposta in `src/content/copy.ts → optinGate.timerSeconds`.
 
 **Payload del form:**
+
 - `name` (string, ≥ 2 char)
 - `surname` (string, ≥ 2 char)
 - `email` (email valida)
@@ -604,6 +620,7 @@ Si imposta in `src/content/copy.ts → optinGate.timerSeconds`.
 - `consent` (boolean, required) — consenso GDPR
 
 **Stato attuale (UI-only):**
+
 - Submit del form → validazione client → redirect a `/gracias`.
 - Niente backend collegato: il payload **non viene inviato a nessuno**.
 - `/gracias` è una pagina statica (no token, no JWT, no download): solo
@@ -649,6 +666,7 @@ in caso di errore lato server.
 **Stato futuro (Fase 4 — Pixel + CAPI):**
 
 Su submit valido:
+
 1. Genera `event_id` (UUID v4) lato server.
 2. Lato client → fire `Lead` su Meta Pixel con `eventID: event_id`.
 3. Lato server → fire `Lead` su Meta CAPI con stesso `event_id` +
@@ -657,6 +675,7 @@ Su submit valido:
    altrimenti Meta conta lead doppi e ottimizza male le campagne.
 
 **Note implementative:**
+
 - **Niente lead-magnet PDF.** Il follow-up è una chiamata telefonica
   dalla coach. Niente nurturing email da questo repo.
 - **Test del gate in dev:** in modalità dev (`import.meta.env.DEV`)
@@ -671,16 +690,16 @@ Su submit valido:
 Confermata. Registro premium, niente rosa shocking né lavanda candy.
 Tokens definiti in `src/styles/global.css` (Tailwind v4 `@theme`).
 
-| Ruolo                 | Token              | Hex       |
-| --------------------- | ------------------ | --------- |
-| Sfondo body (gradiente) | *(body CSS)*     | `#c4a0dc` lavanda media → `#e8aacf` salmon saturo (180deg, rivisto 2026-05-07) |
-| Sfondo card/input/footer | `--color-paper` | `#e8aacf` (rosa salmon saturo, rivisto 2026-05-07) |
-| Testo principale      | `--color-ink`      | `#18082a` (viola notte) |
-| Testo secondario      | `--color-muted`    | `#52246a` (viola scuro per contrasto su bg saturo, rivisto 2026-05-07) |
-| CTA primario          | `--color-rose`     | `#a8184e` (rosa cremisi profondo) |
-| CTA hover/active      | `--color-rose-deep`| `#7d1038` |
-| Dettagli decorativi   | `--color-plum`     | `#4a1275` (viola intenso) |
-| Card / tinte soft     | `--color-blush`    | `#ede0f5` (lavanda cipria) |
+| Ruolo                    | Token               | Hex                                                                            |
+| ------------------------ | ------------------- | ------------------------------------------------------------------------------ |
+| Sfondo body (gradiente)  | _(body CSS)_        | `#c4a0dc` lavanda media → `#e8aacf` salmon saturo (180deg, rivisto 2026-05-07) |
+| Sfondo card/input/footer | `--color-paper`     | `#e8aacf` (rosa salmon saturo, rivisto 2026-05-07)                             |
+| Testo principale         | `--color-ink`       | `#18082a` (viola notte)                                                        |
+| Testo secondario         | `--color-muted`     | `#52246a` (viola scuro per contrasto su bg saturo, rivisto 2026-05-07)         |
+| CTA primario             | `--color-rose`      | `#a8184e` (rosa cremisi profondo)                                              |
+| CTA hover/active         | `--color-rose-deep` | `#7d1038`                                                                      |
+| Dettagli decorativi      | `--color-plum`      | `#4a1275` (viola intenso)                                                      |
+| Card / tinte soft        | `--color-blush`     | `#ede0f5` (lavanda cipria)                                                     |
 
 > ✅ **Palette satura confermata** (2026-05-08). I valori sopra sono
 > più saturi del registro originale "premium maison" del brief —
@@ -688,6 +707,7 @@ Tokens definiti in `src/styles/global.css` (Tailwind v4 `@theme`).
 > Decisione registrata, niente revisione pianificata.
 
 **Regole d'uso:**
+
 - Body sempre su `paper`, mai bianco puro.
 - Solo `ink` per testo lungo, `muted` per occhielli/etichette/note.
 - CTA primario usa `rose` riempito + testo `paper`. Hover → `rose-deep`.
@@ -715,6 +735,7 @@ Trade-off legale accettato consapevolmente: rischio teorico ePrivacy /
 GDPR (Garante IT / IFPDT CH); priorità a copertura paid e CPL.
 
 Conseguenze sul codice:
+
 - **Footer:** niente link legali. Solo brand, tagline, copyright,
   disclaimer di non-affiliazione Meta/Google.
 - **Consent checkbox:** testo del consenso al trattamento mantenuto
@@ -841,7 +862,7 @@ Da chiarire prima di chiudere le rispettive fasi:
 - ✅ Fase 2.3 — Video VSL Vimeo Pro (chiusa 2026-05-09, commit `ab2cea2`).
 - ✅ Fase 3 — Wiring Slack (chiusa 2026-05-09, commit `db9d658`).
 - ✅ Fase 4 — Tracking Pixel + CAPI (chiusa 2026-05-09, commit `db9d658`
-  + fix `5295318`). Acceso senza cookie banner.
+  - fix `5295318`). Acceso senza cookie banner.
 - ❌ Fase 5 — ~~Pagine legali (privacy, cookie) + cookie banner~~ —
   **CANCELLATA** (2026-05-07). Vedi GDPR + Decisioni aperte.
 - ✅ Fase 6 — Go-live: dominio + DNS + HTTPS + env Vercel + privacy

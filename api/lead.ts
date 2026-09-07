@@ -60,7 +60,7 @@ import { z } from "zod";
    Il prezzo è una seconda occorrenza del brand nel repo — vedi
    BRAND_RENAME_CHECKLIST.md §1, che le elenca entrambe.
    Guardia automatica: `node scripts/test-api-isolated.mjs`. */
-const BRAND_NAME = "Donne in Digital"; // TEMP brand, vedi checklist
+const BRAND_NAME = "Chicas Digitales"; // duplicata in src/content/copy.ts, vedi checklist
 
 /* Regole telefono per mercato, applicate al numero NAZIONALE (dopo il
    country code). Speculari a PHONE_RULES in OptInGate.astro e in

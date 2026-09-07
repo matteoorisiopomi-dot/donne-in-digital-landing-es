@@ -11,27 +11,27 @@
 
 ## Stato sintetico (ES)
 
-| Area | Stato |
-| --- | --- |
-| Scaffolding Astro + Tailwind + tokens | ✅ |
-| Layout Base + font + favicon | ✅ |
-| Navbar + Footer | ✅ (logo = asset IT, cambia al rename brand) |
-| Copy castellano di Spagna (`copy.ts`) | ✅ |
-| Rotte `/gracias`, `/aviso-legal`, `/privacidad` | ✅ (le due legali sono stub DRAFT) |
-| OptInGate + form **10 campi** (+ `motivation`, `goal`) | ✅ |
-| Validazione telefono **+34 solo móvil**, client+server allineati | ✅ 28/28 + 31/31 test |
-| `api/lead.ts` — Zod + Slack blocks + CAPI dedup | ✅ codice pronto, **env vuote = no-op** |
-| Pixel + CAPI scaffolding | ✅ codice pronto, **env vuote = no-op** |
-| `robots.txt` + sitemap | ✅ build ok, ⚠ riga `Sitemap:` ancora commentata |
-| A11y (main, skip-link, aria, reduced-motion) | ✅ ereditata, **non ri-testata su ES** |
-| **Video VSL** | ⛔ `provider: "placeholder"` — nessun video |
-| **`timerSeconds`** | ⛔ `570` ereditato dal VSL IT, da ricalcolare |
-| **Dominio + `PUBLIC_SITE_URL`** | ⛔ non esiste ancora |
-| **OG image** | ⛔ assente |
-| **`BRAND_NAME`** | ⛔ placeholder `"Donne in Digital"`, rename in screening |
-| **Consent cookies (RGPD/LSSI/AEPD)** | ⛔ non implementato — P0 ads |
-| Lighthouse / bundle budget su build ES | ⬜ da misurare (i report IT sono stati rimossi) |
-| Test cross-browser + a11y su device reali | ⬜ da fare |
+| Area                                                             | Stato                                            |
+| ---------------------------------------------------------------- | ------------------------------------------------ |
+| Scaffolding Astro + Tailwind + tokens                            | ✅                                               |
+| Layout Base + font + favicon                                     | ✅                                               |
+| Navbar + Footer                                                  | ✅ (logo = asset IT, cambia al rename brand)     |
+| Copy castellano di Spagna (`copy.ts`)                            | ✅                                               |
+| Rotte `/gracias`, `/aviso-legal`, `/privacidad`                  | ✅ (le due legali sono stub DRAFT)               |
+| OptInGate + form **10 campi** (+ `motivation`, `goal`)           | ✅                                               |
+| Validazione telefono **+34 solo móvil**, client+server allineati | ✅ 28/28 + 31/31 test                            |
+| `api/lead.ts` — Zod + Slack blocks + CAPI dedup                  | ✅ codice pronto, **env vuote = no-op**          |
+| Pixel + CAPI scaffolding                                         | ✅ codice pronto, **env vuote = no-op**          |
+| `robots.txt` + sitemap                                           | ✅ build ok, ⚠ riga `Sitemap:` ancora commentata |
+| A11y (main, skip-link, aria, reduced-motion)                     | ✅ ereditata, **non ri-testata su ES**           |
+| **Video VSL**                                                    | ⛔ `provider: "placeholder"` — nessun video      |
+| **`timerSeconds`**                                               | ⛔ `570` ereditato dal VSL IT, da ricalcolare    |
+| **Dominio + `PUBLIC_SITE_URL`**                                  | ⛔ non esiste ancora                             |
+| **OG image**                                                     | ⛔ assente                                       |
+| **`BRAND_NAME`**                                                 | ✅ `"Chicas Digitales"` (rename 2026-09-07)      |
+| **Consent cookies (RGPD/LSSI/AEPD)**                             | ⛔ non implementato — P0 ads                     |
+| Lighthouse / bundle budget su build ES                           | ⬜ da misurare (i report IT sono stati rimossi)  |
+| Test cross-browser + a11y su device reali                        | ⬜ da fare                                       |
 
 ---
 
@@ -41,18 +41,18 @@
 > `PLACEHOLDER`. Tabella di verifica: prima di ogni deploy di produzione
 > si ricontrolla riga per riga.
 
-| # | Placeholder | Dove | Valore oggi | Cosa serve al go-live |
-| --- | --- | --- | --- | --- |
-| 1 | **Video VSL (Vimeo ID)** | `src/content/copy.ts` → `vsl.video` | `{ provider: "placeholder" }` | `{ provider: "vimeo", url: "https://player.vimeo.com/video/<ID>" }` con l'ID del VSL ES |
-| 2 | **Poster video** | `src/content/copy.ts` → `vsl.video.poster` | assente | `https://vumbnail.com/<ID>_large.jpg` oppure JPG locale 1920×1080 in `/public/assets/vsl-poster.jpg` |
-| 3 | **`timerSeconds`** | `src/content/copy.ts` → `optinGate.timerSeconds` | `570` (ereditato dal VSL IT) | **da ricalcolare**: `durataVideoES_in_secondi − 60` |
-| 4 | **`PUBLIC_SITE_URL`** | env Vercel + `astro.config.mjs` | non settata → fallback `https://example-PLACEHOLDER.invalid` | dominio ES definitivo (canonical, `og:url`, sitemap) |
-| 5 | **Meta Pixel** | env `PUBLIC_META_PIXEL_ID` | vuota → no-op | Pixel ID **del mercato ES** (mai quello IT) |
-| 6 | **Meta CAPI** | env `META_CAPI_ACCESS_TOKEN`, `META_CAPI_DATASET_ID` | vuote → no-op | token + dataset **del mercato ES** |
-| 7 | **Slack webhook** | env `SLACK_WEBHOOK_URL` | vuota → `/api/lead.ts` no-op | incoming webhook del canale lead ES |
-| 8 | **Sitemap in `robots.txt`** | `public/robots.txt` | riga `Sitemap:` **commentata**, dominio `<dominio-final>` | scommentare e sostituire col dominio ES reale (file statico, va aggiornato a mano) |
-| 9 | **OG image** | `/public/og-image.jpg` + `src/pages/index.astro` | **assente**, `ogImage` non passata a `Base.astro` | asset 1200×630 ex novo + `ogImage="/og-image.jpg"` in `index.astro` |
-| 10 | **`BRAND_NAME`** | `src/content/copy.ts` | `"Donne in Digital"` (placeholder) | nome definitivo ES — seguire `BRAND_RENAME_CHECKLIST.md` |
+| #      | Placeholder                                              | Dove                                                 | Valore oggi                                                    | Cosa serve al go-live                                                                                |
+| ------ | -------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1      | **Video VSL (Vimeo ID)**                                 | `src/content/copy.ts` → `vsl.video`                  | `{ provider: "placeholder" }`                                  | `{ provider: "vimeo", url: "https://player.vimeo.com/video/<ID>" }` con l'ID del VSL ES              |
+| 2      | **Poster video**                                         | `src/content/copy.ts` → `vsl.video.poster`           | assente                                                        | `https://vumbnail.com/<ID>_large.jpg` oppure JPG locale 1920×1080 in `/public/assets/vsl-poster.jpg` |
+| 3      | **`timerSeconds`**                                       | `src/content/copy.ts` → `optinGate.timerSeconds`     | `570` (ereditato dal VSL IT)                                   | **da ricalcolare**: `durataVideoES_in_secondi − 60`                                                  |
+| ~~4~~  | ~~**`PUBLIC_SITE_URL`**~~ ✅ **chiuso 2026-09-07**       | env Vercel + `astro.config.mjs`                      | fallback = `https://chicasdigitales.es` (apex)                 | resta da puntare il DNS al progetto Vercel                                                           |
+| 5      | **Meta Pixel**                                           | env `PUBLIC_META_PIXEL_ID`                           | vuota → no-op                                                  | Pixel ID **del mercato ES** (mai quello IT)                                                          |
+| 6      | **Meta CAPI**                                            | env `META_CAPI_ACCESS_TOKEN`, `META_CAPI_DATASET_ID` | vuote → no-op                                                  | token + dataset **del mercato ES**                                                                   |
+| 7      | **Slack webhook**                                        | env `SLACK_WEBHOOK_URL`                              | vuota → `/api/lead.ts` no-op                                   | incoming webhook del canale lead ES                                                                  |
+| ~~8~~  | ~~**Sitemap in `robots.txt`**~~ ✅ **chiuso 2026-09-07** | `public/robots.txt`                                  | `Sitemap: https://chicasdigitales.es/sitemap-index.xml` attiva | —                                                                                                    |
+| 9      | **OG image**                                             | `/public/og-image.jpg` + `src/pages/index.astro`     | **assente**, `ogImage` non passata a `Base.astro`              | asset 1200×630 ex novo + `ogImage="/og-image.jpg"` in `index.astro`                                  |
+| ~~10~~ | ~~**`BRAND_NAME`**~~ ✅ **chiuso 2026-09-07**            | `src/content/copy.ts` + `api/lead.ts`                | `"Chicas Digitales"` in entrambi                               | —                                                                                                    |
 
 ---
 
@@ -86,6 +86,7 @@ Stesso peso dei placeholder: **bloccanti**.
 ## Task aperte ES — sbloccate dalle dipendenze
 
 ### Quando arriva il video VSL ES
+
 - [ ] `vsl.video` → `{ provider: "vimeo", url: "https://player.vimeo.com/video/<ID>" }`
 - [ ] `poster` → `https://vumbnail.com/<ID>_large.jpg` o JPG locale 1920×1080
 - [ ] **Ricalcola `optinGate.timerSeconds` = durata_secondi − 60** (oggi `570`, valore IT)
@@ -93,13 +94,16 @@ Stesso peso dei placeholder: **bloccanti**.
 - [ ] Verifica LCP < 2.5s su Lighthouse mobile throttling
 
 ### Quando arriva `SLACK_WEBHOOK_URL` (canale lead ES)
+
 - [ ] Setta env var su Vercel
 - [ ] Submit reale da preview → verifica messaggio in canale
 - [ ] Verifica entrambi i rami `aware=yes` / `aware=no`
 - [ ] Verifica che le label del messaggio siano in castellano
 
 ### Quando arrivano le credenziali Meta **del mercato ES**
+
 > ⚠ Mai riusare Pixel ID / dataset del mercato IT.
+
 - [ ] `PUBLIC_META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`, `META_CAPI_DATASET_ID`
 - [ ] `META_CAPI_TEST_EVENT_CODE` (opzionale, solo per i test)
 - [ ] Deploy preview → verifica `<script>` Pixel emesso in HTML
@@ -109,6 +113,7 @@ Stesso peso dei placeholder: **bloccanti**.
 - [ ] ⚠ **Non attivare con traffico reale prima del consent cookies**
 
 ### Quando arriva il dominio ES
+
 - [ ] DNS su Vercel (A/CNAME)
 - [ ] `PUBLIC_SITE_URL=https://<dominio-ES>` in env Vercel
 - [ ] `public/robots.txt`: scommenta e aggiorna la riga `Sitemap:` (file statico, a mano)
@@ -116,10 +121,12 @@ Stesso peso dei placeholder: **bloccanti**.
 - [ ] Verifica canonical + `og:url` in output build
 
 ### Quando arriva il nome brand definitivo
+
 - [ ] Segui `BRAND_RENAME_CHECKLIST.md` (il brand vive solo in `BRAND_NAME`)
 - [ ] Rigenera logo + favicon + `og-image` con il nuovo marchio
 
 ### Quando arriva la review copy finale
+
 - [ ] Aggiorna le stringhe in `src/content/copy.ts`
 - [ ] Verifica nessuna regressione layout (headline più lunga = wrap)
 - [ ] Ricontrolla i divieti: zero `certificación oficial`, zero income claims
@@ -161,6 +168,7 @@ Stesso peso dei placeholder: **bloccanti**.
 > Vedi `docs/go-live-checklist.md` per dettaglio step-by-step.
 
 **Decisioni ferme**:
+
 - Vimeo Pro account creato con email business (carta business attiva stasera)
 - Dominio `.ch` registrato stasera
 - Slack webhook + Meta Pixel/CAPI generati stasera
@@ -363,7 +371,7 @@ Stesso peso dei placeholder: **bloccanti**.
     transition 360ms opacity + translateY(14px). Force reflow via
     `void offsetHeight` prima di applicare classe.
   - ✅ **Smooth scroll** a form post-reveal: `scrollIntoView({ behavior:
-    "smooth", block: "start" })`. Rispetta `prefers-reduced-motion` →
+"smooth", block: "start" })`. Rispetta `prefers-reduced-motion` →
     `behavior: "auto"`.
   - ✅ **CTA pulse**: animazione `cta-pulse` su submit button — pulse rosa
     sottile via box-shadow, 2.4s ease-out infinite. Si ferma su `:disabled`
