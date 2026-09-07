@@ -198,10 +198,11 @@ export const optinGate = {
     awareLegend: "¿Invertirías en ti misma?",
     awareYes: "Sí",
     awareNo: "No",
+    /* Testo del consenso pieno, senza link: /privacidad è uno stub DRAFT
+       noindex e non va linkato finché non arriva il legal pack. Stesso
+       impianto del mercato IT. */
     consent: {
       text: "Doy mi consentimiento para el tratamiento de mis datos personales (nombre, email, teléfono) con el fin de que me contactéis en relación con el programa.",
-      privacyText: "Consulta nuestra Política de privacidad.",
-      privacyHref: "/privacidad",
     },
     submit: "Enviar",
     submitting: "Enviando…",
